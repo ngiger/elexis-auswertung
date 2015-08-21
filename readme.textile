@@ -31,6 +31,18 @@ Die (kommentierte) Datei batch.sh kopieren und für Ihre Umgebung anpassen (Benu
 
 @./batch_kopie.sh@ ausführen
 
+Danach kann man mysql sich auf die Datebank verbinden. Folgende Abfrage sollte funktionieren;
+
+bc. mysql> select diagnosen_text from kontakt_copy where diagnosen is not null limit 1;
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| diagnosen_text                                                                                                                                                          |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|
+F45.4: Anhaltende somatoforme Schmerzstörung;K58: Colon irritabile;N41.1: Chronische Prostatitis;E78.2: Gemischte Hyperlipidämie;A9: Herz- / Kreislaufsystem anderes   |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+
 
 h2. Aussichten
 
@@ -42,11 +54,4 @@ This application runs a bare Elexis on the console. It demonstrates the headless
 This allows to access an Elexis database without starting a full graphical system. Import all the eclipse project into your Eclipse IDE.
 
 To start the application right click on @Auswertung.product.launch@ and select @Run As..Auswertung.product@.
-
-h3. setup
-
-bc. git clone https://github.com/ngiger/elexis-auswertung.git
-cd elexis-auswertung
-mvn clean install
-java ch.ngiger.elexis.auswertung/target/*.jar
 

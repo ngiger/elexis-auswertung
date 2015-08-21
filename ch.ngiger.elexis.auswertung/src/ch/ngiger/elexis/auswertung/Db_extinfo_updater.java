@@ -231,11 +231,9 @@ public class Db_extinfo_updater {
 			while (rs.next()) {
 				j++;
 				if (j % 8000 == 1) {
-					System.out.print(String.format("\n%1$20s: %2$6d ", table, j - 1));
+					logger.debug(String.format("\n%1$20s: %2$6d ", table, j - 1));
 					conn.commit();
 				}
-				if (j % 100 == 0)
-					System.out.print(".");
 				Map<String, String> maps = mimicGetMap(rs, "extInfo");
 				Iterator<?> x = maps.entrySet().iterator();
 				while (x.hasNext()) {

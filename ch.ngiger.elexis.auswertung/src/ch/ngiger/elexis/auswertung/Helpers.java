@@ -23,11 +23,35 @@ public class Helpers {
 	private static ch.rgw.tools.JdbcLink jdbc;
 	private static Connection conn = null;
 
-	static void showProgress(String msg){
-		System.out.println(msg);
-		log.info(msg);
+	/**
+	 * @param args
+	 */
+	@SuppressWarnings("deprecation")
+	public static void createKontaktCopyWithDiagnosesText(){
+		jdbc = PersistentObject.getConnection();
+		conn = jdbc.getConnection();
+		String tableCopy = copy_table("kontakt");
+		removeNonPatiensFromKontaktCopy();
+
+		String[] anArray;
+		anArray = new String[5];
+		anArray[0] = "diagnosen";
+		anArray[1] = "FamAnamnese";
+		anArray[2] = "SysAnamnese";
+		anArray[3] = "Risiken";
+		anArray[4] = "Allergien";
+		// anArray[5] = "extinfo";
+
+		for (int i = 0; i < anArray.length; i++) {
+			String fieldName = anArray[i];
+			convertBlobIntoVarchar(tableCopy, fieldName);
+		}
+		wait_some_time();
 	}
 
+	static void showProgress(String msg){
+		log.info(msg);
+	}
 
 	private static void wait_some_time(){
 
@@ -42,26 +66,60 @@ public class Helpers {
 		}
 	}
 
-	/**
-	 * @param args
-	 */
-	@SuppressWarnings("deprecation")
-	public static void copy_diagnosis(){
-		System.out.println("copy_diagnosis");
-		jdbc = PersistentObject.getConnection();
-		conn = jdbc.getConnection();
-		String tableCopy = copy_table("kontakt");
-		String new_field = "diagnosen_text";
-		add_field_to_table(tableCopy, new_field);
-		add_diagnosis_codes(tableCopy, new_field);
-		wait_some_time();
-	}
-	private static void add_field_to_table(String table, String fieldname){
+	public static boolean columnExist(String tableName, String columnName){
 		String query = null;
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
-			stmt.executeUpdate("alter table " + table + " add " + fieldname + " varchar (16000); ");
+			query = "SELECT 1, count(" + columnName + ") FROM " + tableName;
+			stmt.executeUpdate(query);
+			stmt.close();
+			return true;
+		} catch (SQLException e1) {
+			// showProgress("SQLException beim Ausführen von " + query + " " + e1.getLocalizedMessage());
+			return false;
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					showProgress("SQLException bei stmt.close" + query);
+				}
+			}
+		}
+	}
+
+	private static void add_field_to_table(String table, String fieldname){
+		if (columnExist(table, fieldname)) {
+			return;
+		}
+		String query = null;
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			query = "alter table " + table + " add " + fieldname + " varchar (16000); ";
+			stmt.executeUpdate(query);
+			stmt.close();
+		} catch (SQLException e1) {
+			showProgress(
+				"SQLException beim Ausführen von " + query + " " + e1.getLocalizedMessage());
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					showProgress("SQLException bei stmt.close" + query);
+				}
+			}
+		}
+	}
+
+	private static void removeNonPatiensFromKontaktCopy(){
+		String query = null;
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			stmt.executeUpdate("delete from kontakt_copy where istPatient = false");
 			stmt.close();
 		} catch (SQLException e1) {
 			showProgress("SQLException beim Abrufen von " + query + " " + e1.getLocalizedMessage());
@@ -134,31 +192,30 @@ public class Helpers {
 			System.exit(1);
 		}
 	}
-	public static void add_diagnosis_codes(String table, String new_field){
+
+	public static void convertBlobIntoVarchar(String table, String field_name){
+		String new_field = field_name + "_text";
 		String query = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		int j = 0;
 		String value = "";
+		add_field_to_table(table, new_field);
 
 		// query = "Select * from " + table;
-		query = "Select * from " + table + " where diagnosen is not null";
+		query = "Select * from " + table + " where " + field_name + " is not null";
 		showProgress("Starting Query " + query);
 		try {
 			stmt =
-					conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			conn.setAutoCommit(false);
 
 			rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				j++;
 				if (j % 8000 == 1) {
-					System.out.print(String.format("\n%1$20s: %2$6d ", table, j - 1));
+					log.debug(String.format("\n%1$20s: %2$6d ", table, j - 1));
 					conn.commit();
-				}
-				if (j % 100 == 0)
-				{
-					System.out.print(".");
 				}
 				ch.elexis.data.Patient patient = ch.elexis.data.Patient.load(rs.getString("Id"));
 				rs.updateString(new_field, patient.getDiagnosen().replaceAll("\r\n", ";"));
@@ -181,7 +238,8 @@ public class Helpers {
 				}
 			}
 		}
-		showProgress(String.format("Table %1$s updated %2$d rows", table, j));
+		showProgress(
+			String.format("Table %1$s updated %2$d rows with field %3$s", table, j, field_name));
 
 	}
 

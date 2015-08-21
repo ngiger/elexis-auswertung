@@ -23,24 +23,24 @@ public class CoreOperationAdvisor extends AbstractCoreOperationAdvisor {
 
 	@Override
 	public void requestDatabaseConnectionConfiguration(){
-		System.out.println("CoreOperationAdvisor: requestDatabaseConnectionConfiguration()");
+		log.debug("CoreOperationAdvisor: requestDatabaseConnectionConfiguration()");
 
 	}
 
 	@Override
 	public void requestInitialMandatorConfiguration(){
-		System.out.println("CoreOperationAdvisor: requestInitialMandatorConfiguration()");
+		log.debug("CoreOperationAdvisor: requestInitialMandatorConfiguration()");
 
 	}
 
 	@Override
 	public void adaptForUser(){
-		System.out.println("CoreOperationAdvisor: adaptForUser()");
+		log.debug("CoreOperationAdvisor: adaptForUser()");
 	}
 
 	@Override
 	public boolean openQuestion(String title, String message){
-		System.out.println("CoreOperationAdvisor: openQuestion() " + title + "\n" + message);
+		log.debug("CoreOperationAdvisor: openQuestion() " + title + "\n" + message);
 		if (title.contains("Diskrepanz in der Datenbank-Version")) {
 			return true;
 		} else {
@@ -67,7 +67,7 @@ public class CoreOperationAdvisor extends AbstractCoreOperationAdvisor {
 
 	@Override
 	public String getInitialPerspective(){
-		System.out.println("CoreOperationAdvisor: getInitialPerspective()");
+		log.debug("CoreOperationAdvisor: getInitialPerspective()");
 		return null;
 	}
 

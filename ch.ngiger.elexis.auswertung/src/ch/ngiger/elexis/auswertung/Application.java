@@ -79,7 +79,7 @@ public class Application implements IApplication {
 
 		// call the static test method to perform tasks, after return program
 		// exits
-		Helpers.copy_diagnosis();
+		Helpers.createKontaktCopyWithDiagnosesText();
 
 		log.debug("Exiting 0");
 		PersistentObject.disconnect();
