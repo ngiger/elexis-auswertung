@@ -1,6 +1,6 @@
 h1. Elexis Auswertung
 
-Eine kleine Java basierende Applikation, um Elexis
+Eine kleine Java/Eclipse-RCP basierende Applikation, um auf der Elexis-Datenbank eine Tabelle mit ausgedeutschen Feldern für eine einfache Auswertung zu erstellen.
 
 h2. Anforderungen
 
