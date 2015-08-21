@@ -38,8 +38,8 @@ public class Helpers {
 		anArray[0] = "diagnosen";
 		anArray[1] = "FamAnamnese";
 		anArray[2] = "SysAnamnese";
-		anArray[3] = "Risiken";
-		anArray[4] = "Allergien";
+		anArray[3] = "risiken";
+		anArray[4] = "allergien";
 		// anArray[5] = "extinfo";
 
 		for (int i = 0; i < anArray.length; i++) {
@@ -97,7 +97,7 @@ public class Helpers {
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
-			query = "alter table " + table + " add " + fieldname + " varchar (16000); ";
+			query = "alter table " + table + " add " + fieldname + " text; ";
 			stmt.executeUpdate(query);
 			stmt.close();
 		} catch (SQLException e1) {
