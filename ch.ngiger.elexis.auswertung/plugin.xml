@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="ch.elexis.core.data.coreOperation">
+      <coreOperation
+            advisor="ch.ngiger.elexis.auswertung.CoreOperationAdvisor">
+      </coreOperation>
+   </extension>
+   <extension
+         id="ElexisAuswertung"
+         name="Elexis Application für leiche Auswertung via SQL"
+         point="org.eclipse.core.runtime.applications">
+      <application
+            cardinality="singleton-global"
+            thread="main"
+            visible="true">
+         <run
+          class="ch.ngiger.elexis.auswertung.Application">
+         </run>
+      </application>
+   </extension>
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="ch.ngiger.elexis.auswertung.ElexisAuswertung"
+            name="Elexis Auswertung">
+      </product>
+   </extension>
+
+</plugin>

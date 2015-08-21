@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Elexis Auswertung
+Bundle-SymbolicName: ch.ngiger.elexis.auswertung;singleton:=true
+Bundle-Version: 3.0.0.qualifier
+Bundle-Vendor: niklaus.giger@member.fsf.org
+Require-Bundle: ch.elexis.core;bundle-version="3.0.0",
+ ch.elexis.core.data;bundle-version="3.0.0",
+ ch.rgw.utility,
+ org.eclipse.core.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Import-Package: ch.elexis.data,
+ org.eclipse.ui.services,
+ org.slf4j
+Bundle-ClassPath: jline-2.13-SNAPSHOT.jar,
+ .
+Export-Package: jline,
+ jline.console,
+ jline.console.completer,
+ jline.console.history,
+ jline.console.internal,
+ jline.internal

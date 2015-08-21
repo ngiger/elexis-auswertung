@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.pde.ui.RuntimeWorkbench">
+<setAttribute key="additional_plugins">
+<setEntry value="ch.elexis.core.logging:3.1.0.qualifier:default:true"/>
+</setAttribute>
+<booleanAttribute key="append.args" value="true"/>
+<stringAttribute key="application" value="ch.ngiger.elexis.auswertung.ElexisAuswertung"/>
+<booleanAttribute key="askclear" value="false"/>
+<booleanAttribute key="automaticAdd" value="false"/>
+<booleanAttribute key="automaticValidate" value="false"/>
+<stringAttribute key="bootstrap" value=""/>
+<stringAttribute key="checked" value="[NONE]"/>
+<booleanAttribute key="clearConfig" value="false"/>
+<booleanAttribute key="clearws" value="true"/>
+<booleanAttribute key="clearwslog" value="false"/>
+<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/Auswertung.product"/>
+<booleanAttribute key="default" value="false"/>
+<stringAttribute key="featureDefaultLocation" value="workspace"/>
+<stringAttribute key="featurePluginResolution" value="workspace"/>
+<booleanAttribute key="includeOptional" value="false"/>
+<stringAttribute key="location" value="${workspace_loc}/../runtime-Auswertung.product"/>
+<stringAttribute key="org.eclipse.jdt.launching.JAVA_COMMAND" value="java"/>
+<stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -consoleLog"/>
+<stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dch.elexis.dbUser=elexis -Dch.elexis.dbPw=elexisTest -Dch.elexis.dbFlavor=mysql  -Dch.elexis.dbSpec=jdbc:mysql://localhost/elexis &#10;-Dch.elexis.username=test -Dch.elexis.password=test"/>
+<stringAttribute key="pde.version" value="3.3"/>
+<stringAttribute key="product" value="ch.ngiger.elexis.auswertung.product"/>
+<stringAttribute key="productFile" value="/ch.ngiger.elexis.auswertung.products/Auswertung.product"/>
+<setAttribute key="selected_features">
+<setEntry value="ch.ngiger.elexis.auswertung.feature:default"/>
+</setAttribute>
+<stringAttribute key="selected_target_plugins" value="bouncycastle.bcprov-jdk14@default:default,c3p0@default:default,ca.uhn.hapi.osgi-base@default:default,ch.qos.logback.classic@default:default,ch.qos.logback.core@default:default,ch.qos.logback.slf4j@default:false,com.google.guava@default:default,com.healthmarketscience.jackcess@default:default,com.ibm.icu@default:default,com.mysql.jdbc@default:default,commons-logging@default:default,net.sf.opencsv@default:default,org.apache.commons.codec*1.6.0.v201305230611@default:default,org.apache.commons.dbcp@default:default,org.apache.commons.io@default:default,org.apache.commons.jexl@default:default,org.apache.commons.lang@default:default,org.apache.commons.pool@default:default,org.apache.felix.gogo.command@default:default,org.apache.felix.gogo.runtime@default:default,org.apache.felix.gogo.shell@default:default,org.apache.poi@default:default,org.beanshell.bsh@default:default,org.eclipse.core.commands@default:default,org.eclipse.core.contenttype@default:default,org.eclipse.core.databinding.beans@default:default,org.eclipse.core.databinding.observable@default:default,org.eclipse.core.databinding.property@default:default,org.eclipse.core.databinding@default:default,org.eclipse.core.expressions@default:default,org.eclipse.core.jobs@default:default,org.eclipse.core.runtime.compatibility.registry@default:false,org.eclipse.core.runtime@default:true,org.eclipse.emf.common@default:default,org.eclipse.emf.ecore@default:default,org.eclipse.equinox.app@default:default,org.eclipse.equinox.common@2:true,org.eclipse.equinox.console@default:default,org.eclipse.equinox.preferences@default:default,org.eclipse.equinox.registry@default:default,org.eclipse.equinox.security@default:default,org.eclipse.help@default:default,org.eclipse.jface.databinding@default:default,org.eclipse.jface@default:default,org.eclipse.nebula.cwt@default:default,org.eclipse.nebula.widgets.cdatetime@default:default,org.eclipse.nebula.widgets.tablecombo@default:default,org.eclipse.osgi*3.9.1.v20140110-1610@-1:true,org.eclipse.swt.gtk.linux.x86_64@default:false,org.eclipse.swt@default:default,org.eclipse.ui.forms@default:default,org.eclipse.ui.views.properties.tabbed@default:default,org.eclipse.ui.views@default:default,org.eclipse.ui.workbench@default:default,org.eclipse.ui@default:default,org.h2@default:default,org.hamcrest.core@default:default,org.jdom@default:default,org.junit@default:default,org.postgresql@default:default,org.slf4j.api@default:default,org.slf4j.jcl@default:default,org.slf4j.jul@default:default,org.slf4j.log4j@default:default,org.slf4j.nop@default:false,uk.org.lidalia.sysout-over-slf4j@default:default"/>
+<stringAttribute key="selected_workspace_plugins" value="at.medevit.elexis.tarmed.model@default:default,ch.elexis.core.data@default:default,ch.elexis.core.eigenartikel@default:default,ch.elexis.core.eigendiagnosen@default:default,ch.elexis.core.hl7.v2x@default:default,ch.elexis.core.logging.default_configuration@default:false,ch.elexis.core.logging@default:default,ch.elexis.core.scheduler@default:default,ch.elexis.core.scripting.beanshell@default:default,ch.elexis.core@default:default,ch.ngiger.elexis.auswertung@4:true,ch.rgw.utility@default:default"/>
+<booleanAttribute key="show_selected_only" value="false"/>
+<booleanAttribute key="tracing" value="false"/>
+<booleanAttribute key="useCustomFeatures" value="false"/>
+<booleanAttribute key="useDefaultConfig" value="true"/>
+<booleanAttribute key="useDefaultConfigArea" value="true"/>
+<booleanAttribute key="useProduct" value="false"/>
+<booleanAttribute key="usefeatures" value="false"/>
+</launchConfiguration>

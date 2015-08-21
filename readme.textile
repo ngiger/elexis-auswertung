@@ -1,0 +1,52 @@
+h1. Elexis Auswertung
+
+Eine kleine Java basierende Applikation, um Elexis
+
+h2. Anforderungen
+
+Für das Projekt medix.net-database.org im Zusammenhang mit Diabetes Qualitätsstandards www.equam.ch braucht Dr. Marco Vecellio aus Zürich eine Tabelle in der Elexis-Datenbank mit folgendem Inhalt
+
+* Kopie der Tabelle kontakte
+* Löschen aller Einträge wo istPatient falsch istPatient
+* Kopie (als varchar lesbare) folgender Spalten. Prefix ist jeweils s_<spaltenname) (s wie String)
+** Diagnosen
+** PersAnamnese
+** SysAnamnese
+** FamAnamnese
+
+Folgende Annahmen wurden gemacht:
+* Nur MySQL wird als Datenbank unterstützt.
+* Grundlage ist Elexis 3.0
+
+h2. Gebrauch
+
+Wir gehen davon aus, dass folgende Werkzeuge zur Verfügung stehen, git, maven, java (Version 7 oder höher). Dann muss einmal folgendes (auf der Kommandozeile) ausgeführt werden
+* git clone https://github.com/ngiger/elexis-auswertung.git
+* cd elexis-auswertung
+* mvn clean install
+
+h2. Ausführen
+
+Die (kommentierte) Datei batch.sh kopieren und für Ihre Umgebung anpassen (Benutzernamen, Passwörter, DB-Name, etc). Danach kann man auf der Kommandozeile
+
+@./batch_kopie.sh@ ausführen
+
+
+h2. Aussichten
+
+In einem zweiten Schritt (aber erst ab Elexis 3.1) soll noch die Fixmedikation hinzukommen.
+
+h2. Hints for programmers
+
+This application runs a bare Elexis on the console. It demonstrates the headless running capabilities of @ch.elexis.core.data@.
+This allows to access an Elexis database without starting a full graphical system.
+
+To start the application right click on @auswertunglaunch@ and select @Run As@.
+
+h3. setup
+
+bc. git clone https://github.com/ngiger/elexis-auswertung.git
+cd elexis-auswertung
+mvn clean install
+java ch.ngiger.elexis.auswertung/target/*.jar
+
