@@ -18,18 +18,15 @@ Folgende Annahmen wurden gemacht:
 * Nur MySQL wird als Datenbank unterstützt.
 * Grundlage ist Elexis 3.0
 
-h2. Gebrauch
+h2. Installation
 
-Wir gehen davon aus, dass folgende Werkzeuge zur Verfügung stehen, git, maven, java (Version 7 oder höher). Dann muss einmal folgendes (auf der Kommandozeile) ausgeführt werden
-* @git clone https://github.com/ngiger/elexis-auswertung.git@
-* @cd elexis-auswertung@
-* @mvn clean install@
+Von "Continuos Integration for Elexis 3":https://jenkins.elexis.info/jenkins/job/elexis-auswertung/lastSuccessfulBuild/artifact/ch.ngiger.elexis.auswertung.products/target/products/ die ZIP-Datei für das eigene Betriebssystem runterladen und entpacken.
 
 h2. Ausführen
 
-Die (kommentierte) Datei batch.sh kopieren und für Ihre Umgebung anpassen (Benutzernamen, Passwörter, DB-Name, etc). Danach kann man auf der Kommandozeile
+Die (kommentierte) Datei "batch.sh":https://raw.githubusercontent.com/ngiger/elexis-auswertung/master/batch.sh herunterladen und für Ihre Umgebung anpassen (Benutzernamen, Passwörter, DB-Name, etc). Danach kann man auf der Kommandozeile
 
-@./batch_kopie.sh@ ausführen
+@bash batch.sh@ ausführen
 
 Danach kann man mysql sich auf die Datebank verbinden. Folgende Abfrage sollte funktionieren;
 
@@ -49,6 +46,15 @@ h2. Aussichten
 In einem zweiten Schritt (aber erst ab Elexis 3.1) soll noch die Fixmedikation hinzukommen.
 
 h2. Hints for programmers
+
+h3. requirements
+
+You need the following tools git, maven, java (Version 7 or higher), then the following steps should work
+* @git clone https://github.com/ngiger/elexis-auswertung.git@
+* @cd elexis-auswertung@
+* @mvn clean install@
+
+To install maven under MacOSX you might use "Homebrew":http://brew.sh/ and run @brew install maven@
 
 This application runs a bare Elexis on the console. It demonstrates the headless running capabilities of @ch.elexis.core.data@.
 This allows to access an Elexis database without starting a full graphical system. Import all the eclipse project into your Eclipse IDE.
