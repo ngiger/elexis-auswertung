@@ -11,15 +11,6 @@
 
    <windowImages/>
 
-   <launcher name="ElexisAuswertung">
-      <linux icon="/rsc/elexis48.xpm"/>
-      <macosx icon="/rsc/elexis-mac.icns"/>
-      <solaris/>
-      <win useIco="false">
-         <bmp/>
-      </win>
-   </launcher>
-
    <vm>
    </vm>
 
