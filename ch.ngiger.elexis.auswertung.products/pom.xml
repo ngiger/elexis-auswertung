@@ -11,6 +11,16 @@
     <plugins>
       <plugin>
         <groupId>org.eclipse.tycho </groupId>
+        <artifactId>tycho-p2-repository-plugin</artifactId>
+        <configuration>
+          <includeAllDependencies>true</includeAllDependencies>
+          <profileProperties>
+            <macosx-bundled>true</macosx-bundled>
+          </profileProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.tycho </groupId>
         <artifactId>tycho-p2-director-plugin</artifactId>
         <executions>
           <execution>
@@ -26,6 +36,23 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <formats>
+            <win32>zip</win32>
+            <linux>tar.gz</linux>
+            <macosx>tar.gz</macosx>
+          </formats>
+          <products>
+            <product>
+              <id>ch.ngiger.ElexisAuswertung</id>
+              <rootFolder></rootFolder>
+              <rootFolders>
+                <macosx>ElexisAuswertung.app</macosx>
+                <win32></win32>
+              </rootFolders>
+            </product>
+          </products>
+        </configuration>
       </plugin>
     </plugins>
   </build>

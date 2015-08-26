@@ -9,6 +9,8 @@
    <launcherArgs>
    </launcherArgs>
 
+   <launcher name="ElexisAuswertung" />
+
    <windowImages/>
 
    <vm>

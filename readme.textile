@@ -20,7 +20,7 @@ Folgende Annahmen wurden gemacht:
 
 h2. Installation
 
-Von "Continuos Integration for Elexis 3":https://jenkins.elexis.info/jenkins/job/elexis-auswertung/lastSuccessfulBuild/artifact/ch.ngiger.elexis.auswertung.products/target/products/ die ZIP-Datei für das eigene Betriebssystem runterladen und entpacken.
+Von "Continuos Integration for Elexis 3":https://jenkins.elexis.info/jenkins/job/elexis-auswertung/lastSuccessfulBuild/artifact/ch.ngiger.elexis.auswertung.products/target/products/ die komprimierte Datei für das eigene Betriebssystem runterladen und entpacken.
 
 h2. Ausführen
 
@@ -49,12 +49,12 @@ h2. Hints for programmers
 
 h3. requirements
 
-You need the following tools git, maven, java (Version 7 or higher), then the following steps should work
+You need the following tools git, maven (Version 3.0.5), java (Version 7 or higher), then the following steps should work
 * @git clone https://github.com/ngiger/elexis-auswertung.git@
 * @cd elexis-auswertung@
 * @mvn clean install@
 
-To install maven under MacOSX you might use "Homebrew":http://brew.sh/ and run @brew install maven@
+To install maven under MacOSX you might use "Homebrew":http://brew.sh/ and run @brew install maven30@
 
 This application runs a bare Elexis on the console. It demonstrates the headless running capabilities of @ch.elexis.core.data@.
 This allows to access an Elexis database without starting a full graphical system. Import all the eclipse project into your Eclipse IDE.
