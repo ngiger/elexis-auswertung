@@ -1,8 +1,5 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <prerequisites>
-    <maven>3.3.0</maven>
-  </prerequisites>
   <modelVersion>4.0.0</modelVersion>
     <groupId>ch.ngiger</groupId>
     <artifactId>elexis-3</artifactId>
@@ -13,7 +10,7 @@
     <module>ch.ngiger.elexis.auswertung.products</module>
   </modules>
   <properties>
-    <tycho-version>0.20.0</tycho-version>
+    <tycho-version>0.22.0</tycho-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <tycho-extras.version>${tycho-version}</tycho-extras.version>
     <juno-repo.url>http://download.eclipse.org/releases/juno</juno-repo.url>

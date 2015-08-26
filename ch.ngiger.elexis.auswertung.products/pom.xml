@@ -11,16 +11,6 @@
     <plugins>
       <plugin>
         <groupId>org.eclipse.tycho </groupId>
-        <artifactId>tycho-p2-repository-plugin</artifactId>
-        <configuration>
-          <includeAllDependencies>true</includeAllDependencies>
-          <profileProperties>
-            <macosx-bundled>true</macosx-bundled>
-          </profileProperties>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.eclipse.tycho </groupId>
         <artifactId>tycho-p2-director-plugin</artifactId>
         <executions>
           <execution>
