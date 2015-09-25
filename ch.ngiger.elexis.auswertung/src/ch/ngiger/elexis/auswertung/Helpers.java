@@ -18,11 +18,11 @@ import ch.elexis.data.PersistentObject;
 import ch.elexis.data.Query;
 
 public class Helpers {
-
+	
 	private static Logger log = LoggerFactory.getLogger(Helpers.class);
 	private static ch.rgw.tools.JdbcLink jdbc;
 	private static Connection conn = null;
-
+	
 	/**
 	 * @param args
 	 */
@@ -32,7 +32,7 @@ public class Helpers {
 		conn = jdbc.getConnection();
 		String tableCopy = copy_table("kontakt");
 		removeNonPatiensFromKontaktCopy();
-
+		
 		String[] anArray;
 		anArray = new String[5];
 		anArray[0] = "diagnosen";
@@ -41,20 +41,20 @@ public class Helpers {
 		anArray[3] = "risiken";
 		anArray[4] = "allergien";
 		// anArray[5] = "extinfo";
-
+		
 		for (int i = 0; i < anArray.length; i++) {
 			String fieldName = anArray[i];
 			convertBlobIntoVarchar(tableCopy, fieldName);
 		}
 		wait_some_time();
 	}
-
+	
 	static void showProgress(String msg){
 		log.info(msg);
 	}
-
+	
 	private static void wait_some_time(){
-
+		
 		// meaningless eventloop, to avoid exit
 		for (int i = 0; i < 1; i++) {
 			try {
@@ -65,7 +65,7 @@ public class Helpers {
 			}
 		}
 	}
-
+	
 	public static boolean columnExist(String tableName, String columnName){
 		String query = null;
 		Statement stmt = null;
@@ -76,7 +76,8 @@ public class Helpers {
 			stmt.close();
 			return true;
 		} catch (SQLException e1) {
-			// showProgress("SQLException beim Ausführen von " + query + " " + e1.getLocalizedMessage());
+			// showProgress("SQLException beim Ausführen von " + query + " " +
+			// e1.getLocalizedMessage());
 			return false;
 		} finally {
 			if (stmt != null) {
@@ -88,7 +89,7 @@ public class Helpers {
 			}
 		}
 	}
-
+	
 	private static void add_field_to_table(String table, String fieldname){
 		if (columnExist(table, fieldname)) {
 			return;
@@ -101,8 +102,8 @@ public class Helpers {
 			stmt.executeUpdate(query);
 			stmt.close();
 		} catch (SQLException e1) {
-			showProgress(
-				"SQLException beim Ausführen von " + query + " " + e1.getLocalizedMessage());
+			showProgress("SQLException beim Ausführen von " + query + " "
+				+ e1.getLocalizedMessage());
 		} finally {
 			if (stmt != null) {
 				try {
@@ -113,7 +114,7 @@ public class Helpers {
 			}
 		}
 	}
-
+	
 	private static void removeNonPatiensFromKontaktCopy(){
 		String query = null;
 		Statement stmt = null;
@@ -133,13 +134,15 @@ public class Helpers {
 			}
 		}
 	}
-
+	
 	public static String copy_table(String table){
 		ArrayList<String> copyStmts = new ArrayList<String>();
 		copyStmts.add(String.format("DROP TABLE IF EXISTS %1$s_COPY", table));
 		String tableCopy = String.format("%1$s_COPY", table);
 		copyStmts.add(String.format("CREATE TABLE " + tableCopy + " LIKE %1$s", table));
 		copyStmts.add(String.format("INSERT %1$s_COPY SELECT * FROM %1$s", table));
+		// Create statement below works for H2 but not for mysql
+		// copyStmts.add(String.format("CREATE TABLE " + tableCopy + " as select all * from %1$s", table));
 		String query = null;
 		Statement stmt = null;
 		try {
@@ -163,9 +166,9 @@ public class Helpers {
 		}
 		return tableCopy;
 	}
-
+	
 	private static void loginToDb(){
-
+		
 		// connect to the database
 		try {
 			if (PersistentObject.connect(CoreHub.localCfg) == false)
@@ -192,7 +195,7 @@ public class Helpers {
 			System.exit(1);
 		}
 	}
-
+	
 	public static void convertBlobIntoVarchar(String table, String field_name){
 		String new_field = field_name + "_text";
 		String query = null;
@@ -201,7 +204,7 @@ public class Helpers {
 		int j = 0;
 		String value = "";
 		add_field_to_table(table, new_field);
-
+		
 		// query = "Select * from " + table;
 		query = "Select * from " + table + " where " + field_name + " is not null";
 		showProgress("Starting Query " + query);
@@ -209,7 +212,7 @@ public class Helpers {
 			stmt =
 				conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			conn.setAutoCommit(false);
-
+			
 			rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				j++;
@@ -218,11 +221,11 @@ public class Helpers {
 					conn.commit();
 				}
 				ch.elexis.data.Patient patient = ch.elexis.data.Patient.load(rs.getString("Id"));
-				rs.updateString(new_field, patient.getDiagnosen().replaceAll("\r\n", ";"));
+				rs.updateString(new_field, patient.getDiagnosen());
 				rs.updateRow();
 			}
 			stmt.close();
-
+			
 		} catch (SQLException e1) {
 			showProgress("SQLException beim Updaten der extinfo der Tabelle " + table + " "
 				+ e1.getMessage());
@@ -238,9 +241,9 @@ public class Helpers {
 				}
 			}
 		}
-		showProgress(
-			String.format("Table %1$s updated %2$d rows with field %3$s", table, j, field_name));
-
+		showProgress(String.format("Table %1$s updated %2$d rows with field %3$s", table, j,
+			field_name));
+		
 	}
-
+	
 }
