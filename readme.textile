@@ -13,6 +13,10 @@ Für das Projekt medix.net-database.org im Zusammenhang mit Diabetes Qualitätss
 ** PersAnamnese
 ** SysAnamnese
 ** FamAnamnese
+* Neue Tabelle fix_medi_auswertung mit folgenden Feldern. Pro Kontakt-ID kann es mehrere Fix-Medi-Einträge geben
+** ID (Fremdschlüssel auf Kontakt.ID)
+** info (Artikelname, Dosis, etc, als 1 Einfeld).
+
 
 Folgende Annahmen wurden gemacht:
 * Nur MySQL wird als Datenbank unterstützt.

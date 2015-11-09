@@ -9,19 +9,18 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.elexis.core.data.activator.CoreHub;
-import ch.elexis.core.data.constants.ElexisSystemPropertyConstants;
-import ch.elexis.core.exceptions.PersistenceException;
-import ch.elexis.data.Anwender;
-import ch.elexis.data.Kontakt;
+import ch.elexis.data.Artikel;
+import ch.elexis.data.Patient;
 import ch.elexis.data.PersistentObject;
-import ch.elexis.data.Query;
+import ch.elexis.data.Prescription;
+import ch.rgw.tools.JdbcLink.Stm;
 
 public class Helpers {
 	
 	private static Logger log = LoggerFactory.getLogger(Helpers.class);
 	private static ch.rgw.tools.JdbcLink jdbc;
 	private static Connection conn = null;
+	private static String FixMediTable = "fix_medi_auswertung";
 	
 	/**
 	 * @param args
@@ -31,7 +30,7 @@ public class Helpers {
 		jdbc = PersistentObject.getConnection();
 		conn = jdbc.getConnection();
 		String tableCopy = copy_table("kontakt");
-		removeNonPatiensFromKontaktCopy();
+		// removeNonPatiensFromKontaktCopy();
 		
 		String[] anArray;
 		anArray = new String[5];
@@ -49,6 +48,101 @@ public class Helpers {
 		wait_some_time();
 	}
 	
+	/**
+	 * @param args
+	 */
+	public static void addFixMediAuswertungTable(){
+		String query = null;
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			query = "drop table if exists " + FixMediTable + ";";
+			stmt.executeUpdate(query);
+			stmt.close();
+			stmt = conn.createStatement();
+			query =
+				"create table if not exists " + FixMediTable
+					+ " ( id Varchar(25), info varchar(255)); ";
+			stmt.executeUpdate(query);
+			stmt.close();
+		} catch (SQLException e1) {
+			log.warn("SQLException beim Ausführen von " + query + " " + e1.getLocalizedMessage());
+		}
+	}
+
+	/*
+	 * This is an ugly hack, as we cannot use the UI plugins from ch.elexis.base.article
+	 */
+	private static String getArtikelName(Prescription item){
+		Artikel art = item.getArtikel();
+		if (art != null) {
+			return item.getArtikel().getLabel();
+		} else {
+			String name = "Fehler";
+			String article_id = item.get(Prescription.ARTICLE);
+			String id = article_id.substring(article_id.indexOf("::") + 2);
+			Stm stm = PersistentObject.getConnection().getStatement();
+			try {
+				String query = "SELECT name FROM artikel WHERE id= '" + id + "'";
+				name = stm.queryString(query);
+			} finally {
+				PersistentObject.getConnection().releaseStatement(stm);
+			}
+			return name;
+		}
+	}
+
+	/**
+	 * @param args
+	 */
+	@SuppressWarnings("deprecation")
+	public static void addFixMediAuswertung(){
+		jdbc = PersistentObject.getConnection();
+		conn = jdbc.getConnection();
+		addFixMediAuswertungTable();
+		try {
+			Statement sta = conn.createStatement();
+			conn.setAutoCommit(false); // To speed up things
+			ResultSet res = sta.executeQuery("SELECT ID, Bezeichnung1 FROM kontakt");
+			Integer idx = 0;
+			while (res.next()) {
+				String id = res.getString("ID");
+				String Bezeichnung1 = res.getString("Bezeichnung1");
+				Patient pat = Patient.load(id);
+				if (!pat.istPatient()) {
+					log.debug("Kein Patient for id: " + id);
+				} else {
+					Prescription[] presc = pat.getFixmedikation();
+					log.debug(Bezeichnung1 + " fix medit hat " + presc.length + " Einträge");
+					if (presc.length > 0) {
+						log.debug("Fix medit hat " + presc.length + " Einträge");
+						for (int i = 0; i < presc.length; i++) {
+							Prescription item = presc[i];
+							String info =
+								getArtikelName(item) + " " + item.getBeginDate() + "-"
+									+ item.getEndDate() + " " + item.getDosis() + " "
+									+ item.getBemerkung();
+							Statement sta2 = conn.createStatement();
+							log.trace("info:" + info);
+							String do_insert =
+								"insert into " + FixMediTable + " values ( \"" + id + "\", \""
+									+ info + "\");";
+							sta2.executeUpdate(do_insert);
+							sta2.close();
+						}
+						idx += 1;
+					}
+				}
+			}
+			log.info("Anzahl Patienten mit Fixmedi: " + idx);
+			sta.close();
+			conn.setAutoCommit(true);
+			conn.close();
+		} catch (Exception e) {
+			log.warn("Exception: " + e.getMessage());
+		}
+	}
+
 	static void showProgress(String msg){
 		log.info(msg);
 	}
@@ -60,7 +154,6 @@ public class Helpers {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -115,26 +208,6 @@ public class Helpers {
 		}
 	}
 	
-	private static void removeNonPatiensFromKontaktCopy(){
-		String query = null;
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			stmt.executeUpdate("delete from kontakt_copy where istPatient = false");
-			stmt.close();
-		} catch (SQLException e1) {
-			showProgress("SQLException beim Abrufen von " + query + " " + e1.getLocalizedMessage());
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					showProgress("SQLException bei stmt.close" + query);
-				}
-			}
-		}
-	}
-	
 	public static String copy_table(String table){
 		ArrayList<String> copyStmts = new ArrayList<String>();
 		copyStmts.add(String.format("DROP TABLE IF EXISTS %1$s_COPY", table));
@@ -142,7 +215,8 @@ public class Helpers {
 		copyStmts.add(String.format("CREATE TABLE " + tableCopy + " LIKE %1$s", table));
 		copyStmts.add(String.format("INSERT %1$s_COPY SELECT * FROM %1$s", table));
 		// Create statement below works for H2 but not for mysql
-		// copyStmts.add(String.format("CREATE TABLE " + tableCopy + " as select all * from %1$s", table));
+		// copyStmts.add(String.format("CREATE TABLE " + tableCopy +
+		// " as select all * from %1$s", table));
 		String query = null;
 		Statement stmt = null;
 		try {
@@ -165,35 +239,6 @@ public class Helpers {
 			}
 		}
 		return tableCopy;
-	}
-	
-	private static void loginToDb(){
-		
-		// connect to the database
-		try {
-			if (PersistentObject.connect(CoreHub.localCfg) == false)
-				log.error(PersistentObject.class.getName() + " initialization failed.");
-		} catch (PersistenceException pe) {
-			log.error("Initialization error", pe);
-			pe.printStackTrace();
-			System.exit(1);
-		}
-		// check connection by logging number of contact entries
-		Query<Kontakt> qbe = new Query<>(Kontakt.class);
-		log.debug("Number of contacts in DB: " + qbe.execute().size());
-		// log-in
-		String username = System.getProperty(ElexisSystemPropertyConstants.LOGIN_USERNAME);
-		String password = System.getProperty(ElexisSystemPropertyConstants.LOGIN_PASSWORD);
-		log.debug("Starting Login as " + username);
-		if (username != null && password != null) {
-			if (!Anwender.login(username, password)) {
-				log.error("Authentication failed. Exiting.");
-				System.exit(1);
-			}
-		} else {
-			log.error("Does not support interactive log-in, please use system properties");
-			System.exit(1);
-		}
 	}
 	
 	public static void convertBlobIntoVarchar(String table, String field_name){
