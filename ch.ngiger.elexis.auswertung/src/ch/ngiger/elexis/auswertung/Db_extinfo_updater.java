@@ -29,7 +29,7 @@ public class Db_extinfo_updater {
 	private static final String FLD_EXTINFO = "ExtInfo";
 	private static Connection conn = null;
 	private static HashMap<String, Number> fieldsLonger150 = null;
-
+	
 	/**
 	 * @param args
 	 */
@@ -42,7 +42,7 @@ public class Db_extinfo_updater {
 			jdbcCopyTableAndConvertExtInfo(allTables.get(j), "extInfo");
 		}
 	}
-
+	
 	public static ArrayList<String> jdbcGetAllTableNames(){
 		ArrayList<String> res = new ArrayList<String>();
 		try {
@@ -64,7 +64,7 @@ public class Db_extinfo_updater {
 		}
 		return res;
 	}
-
+	
 	/*
 	 * return all fields of table (in lowercase)
 	 */
@@ -94,7 +94,7 @@ public class Db_extinfo_updater {
 		}
 		return fields;
 	}
-
+	
 	// From PersistenceObject
 	@SuppressWarnings("unchecked")
 	private static Hashtable<Object, Object> fold(final byte[] flat){
@@ -112,7 +112,7 @@ public class Db_extinfo_updater {
 			return null;
 		}
 	}
-
+	
 	// Adapted and modified from PersistenceOjbect
 	@SuppressWarnings("rawtypes")
 	private static Map mimicGetMap(ResultSet rs, final String field){
@@ -132,13 +132,13 @@ public class Db_extinfo_updater {
 		}
 		return ret;
 	}
-
+	
 	/*
 	 * Return all fields mentioned in extinfo (lowercase) if not already present in
 	 * other fields.
 	 */
 	public static ArrayList<String> jdbcGetExtInfoForTable(String table, String field_name)
-
+	
 	{
 		fieldsLonger150 = new HashMap<String, Number>();
 		ArrayList<String> fields = jdbcGetAllFields(table);
@@ -147,7 +147,7 @@ public class Db_extinfo_updater {
 		ResultSet rs = null;
 		int maxLength = 0;
 		int j = 0;
-
+		
 		// Get all extinfo which are not null
 		String query = "Select * from " + table + " where " + field_name + " is not null";
 		Helpers.showProgress("Starting Query " + query);
@@ -180,10 +180,10 @@ public class Db_extinfo_updater {
 				}
 			}
 			stmt.close();
-
+			
 		} catch (SQLException e1) {
-			Helpers.showProgress("SQLException beim Abrufen " + field_name + " der Tabelle " + table + " "
-				+ e1.getMessage());
+			Helpers.showProgress("SQLException beim Abrufen " + field_name + " der Tabelle "
+				+ table + " " + e1.getMessage());
 		} finally {
 			if (stmt != null) {
 				try {
@@ -197,7 +197,7 @@ public class Db_extinfo_updater {
 			extFields.toString(), query, fieldsLonger150.toString()));
 		return extFields;
 	}
-
+	
 	public static String getValidFieldName(String oldFieldName){
 		// statusänderung or zurückgewiesen are found as column names via extinfo
 		String newFieldName = oldFieldName.replaceAll("[^a-zA-Zäöü_]", "_").toLowerCase();
@@ -208,25 +208,32 @@ public class Db_extinfo_updater {
 			newFieldName = newFieldName + "_add";
 		return newFieldName;
 	}
-
-	public static void jdbcConvertExtInfo(String table, String field_name){
+	
+	public static void jdbcConvertExtInfo(String table, String field_name, String id){
 		String query = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		int j = 0;
 		String fieldName = "";
 		String value = "";
-
+		if (jdbc == null || conn == null) {
+			jdbc = PersistentObject.getConnection();
+			conn = jdbc.getConnection();
+		}
+		
 		// - Extract all info from the extInfo
 		// - Update the row with the new value and set extInfo to null
-
-		query = "Select * from " + table + " where " + field_name +" is not null";
+		
+		query = "Select * from " + table + " where " + field_name + " is not null";
+		if (id != null) {
+			query += " and id = '" + id + "'"; // Allow limiting query for debugging 
+		}
 		Helpers.showProgress("Starting Query " + query);
 		try {
 			stmt =
 				conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			conn.setAutoCommit(false);
-
+			
 			rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				j++;
@@ -247,7 +254,7 @@ public class Db_extinfo_updater {
 				rs.updateRow();
 			}
 			stmt.close();
-
+			
 		} catch (SQLException e1) {
 			Helpers.showProgress("SQLException beim Updaten der extinfo der Tabelle " + table + " "
 				+ e1.getMessage());
@@ -264,9 +271,9 @@ public class Db_extinfo_updater {
 			}
 		}
 		Helpers.showProgress(String.format("Table %1$s updated %2$d rows", table, j));
-
+		
 	}
-
+	
 	public static int getFieldLength(String fieldName){
 		if (fieldsLonger150.get(fieldName) != null)
 			// Add some margin
@@ -274,14 +281,14 @@ public class Db_extinfo_updater {
 		else
 			return 255;
 	}
-
+	
 	public static void jdbcCopyTableAndConvertExtInfo(String table, String fieldName){
 		// Return when running on a copy
 		if (table.toLowerCase().endsWith("_copy")) {
 			Helpers.showProgress("Skipping as" + table + " ends with _copy");
 			return;
 		}
-
+		
 		// Return if we don't have a field extinfo
 		ArrayList<String> fields = jdbcGetAllFields(table);
 		boolean found = false;
@@ -294,7 +301,7 @@ public class Db_extinfo_updater {
 			Helpers.showProgress("Skipping as no field extinfo in " + table);
 			return;
 		}
-
+		
 		String tableCopy = Helpers.copy_table(table);
 		table = tableCopy;
 		Method method = null;
@@ -314,7 +321,8 @@ public class Db_extinfo_updater {
 				sb = null;
 				for (j = 0; j < extFields.size(); j++) {
 					extFieldName = extFields.get(j);
-					Helpers.showProgress("Table " + table + ": Adding extFieldName: " + extFieldName);
+					Helpers.showProgress("Table " + table + ": Adding extFieldName: "
+						+ extFieldName);
 					if (sb == null) {
 						sb =
 							new StringBuilder(String.format(
@@ -337,16 +345,16 @@ public class Db_extinfo_updater {
 					Helpers.showProgress("SQLException: " + addStatement + "\n" + e.getMessage());
 				}
 			}
-
+			
 			// Now we have all the info and will iterate over the copied table
-			jdbcConvertExtInfo(table, fieldName);
+			jdbcConvertExtInfo(table, fieldName, null);
 		} catch (SecurityException e) {
 			// TODO Auto-generated catch block
 			Helpers.showProgress("SecurityException executing " + method.getName());
 		}
-
-		Helpers.showProgress(String
-			.format("Query for fields %2$s returned %1$d rows", j, fields.toString()));
+		
+		Helpers.showProgress(String.format("Query for fields %2$s returned %1$d rows", j,
+			fields.toString()));
 	}
-
+	
 }
