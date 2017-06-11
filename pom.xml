@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
     <groupId>ch.ngiger</groupId>
     <artifactId>elexis-3</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3.1.0-SNAPSHOT</version>
   <modules>
     <module>ch.ngiger.elexis.auswertung</module>
     <module>ch.ngiger.elexis.auswertung.feature</module>
@@ -16,7 +16,7 @@
     <juno-repo.url>http://download.eclipse.org/releases/juno</juno-repo.url>
     <tycho-repo.url>https://oss.sonatype.org/content/groups/public/</tycho-repo.url>
     <repo_name>elexis.3.base</repo_name>
-    <repo_variant>release</repo_variant>
+    <repo_variant>prerelease</repo_variant>
     <useBranch>release</useBranch>
     <nonElexisP2variant>release</nonElexisP2variant>
     <ROOT>${project.basedir}/compositeRepository</ROOT>
@@ -161,21 +161,6 @@
           <environment>
             <os>linux</os>
             <ws>gtk</ws>
-            <arch>x86</arch>
-          </environment>
-          <environment>
-            <os>linux</os>
-            <ws>gtk</ws>
-            <arch>x86_64</arch>
-          </environment>
-          <environment>
-            <os>win32</os>
-            <ws>win32</ws>
-            <arch>x86</arch>
-          </environment>
-          <environment>
-            <os>win32</os>
-            <ws>win32</ws>
             <arch>x86_64</arch>
           </environment>
           <environment>
@@ -245,7 +230,7 @@ Without it Maven would put two versions of each class file into the jars
         <artifactId>target-platform-configuration</artifactId>
         <version>${tycho-version}</version>
         <configuration>
-          <executionEnvironment>JavaSE-1.7</executionEnvironment>
+          <executionEnvironment>JavaSE-1.8</executionEnvironment>
         </configuration>
       </plugin>
       <plugin>

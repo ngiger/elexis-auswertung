@@ -1,5 +1,8 @@
 package ch.ngiger.elexis.auswertung;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,13 +11,15 @@ import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
 import ch.elexis.data.Artikel;
+import ch.elexis.data.Kontakt;
 import ch.elexis.data.Patient;
 import ch.elexis.data.PersistentObject;
 import ch.elexis.data.Prescription;
 import ch.rgw.tools.JdbcLink.Stm;
-import ch.elexis.data.Kontakt;
 
 public class Helpers {
 	
@@ -22,7 +27,11 @@ public class Helpers {
 	private static ch.rgw.tools.JdbcLink jdbc;
 	private static Connection conn = null;
 	private static String FixMediTable = "vem_fixmedi";
-	
+	/*
+create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_kontakt.Bezeichnung2, vem_kontakt.Geburtsdatum,
+	vem_fixmedi.info, vem_fixmedi.codename from vem_kontakt, vem_fixmedi
+	where vem_fixmedi.id = vem_kontakt.id;
+	 */
 	/**
 	 * @param args
 	 */
@@ -37,14 +46,14 @@ public class Helpers {
 			stmt = conn.createStatement();
 			query =
 				"create table if not exists " + FixMediTable
-					+ " ( id Varchar(25), info varchar(255)); ";
+					+ " ( id Varchar(25), info varchar(255), codename varchar(80)); ";
 			stmt.executeUpdate(query);
 			stmt.close();
 		} catch (SQLException e1) {
 			log.warn("SQLException beim Ausführen von " + query + " " + e1.getLocalizedMessage());
 		}
 	}
-	
+
 	/*
 	 * This is an ugly hack, as we cannot use the UI plugins from ch.elexis.base.article
 	 */
@@ -54,7 +63,7 @@ public class Helpers {
 			return item.getArtikel().getLabel();
 		} else {
 			String name = "Fehler";
-			String article_id = item.get(Prescription.ARTICLE);
+			String article_id = item.get(Prescription.FLD_ARTICLE);
 			String id = article_id.substring(article_id.indexOf("::") + 2);
 			Stm stm = PersistentObject.getConnection().getStatement();
 			try {
@@ -82,30 +91,42 @@ public class Helpers {
 			if (pat_id != null) {
 				query += " where id = '" + pat_id + "'";
 			}
+			boolean must_debug = false;
 			ResultSet res = sta.executeQuery(query);
 			Integer idx = 0;
 			while (res.next()) {
 				String id = res.getString("ID");
-				String Bezeichnung1 = res.getString("Bezeichnung1");
 				Patient pat = Patient.load(id);
 				if (!pat.istPatient()) {
 					log.trace("Kein Patient for id: " + id);
 				} else {
+					must_debug = id.equals("C385b623f459dadc8032");
+
 					Prescription[] presc = pat.getFixmedikation();
-					log.trace(Bezeichnung1 + " fix medit hat " + presc.length + " Einträge");
 					if (presc.length > 0) {
+						log.debug(pat.getPersonalia() + " fix medit hat " + presc.length + " Eintraege");
 						for (int i = 0; i < presc.length; i++) {
 							Prescription item = presc[i];
-							String info =
-								getArtikelName(item) + " " + item.getEndDate() + " "
-									+ item.getDosis() + " " + item.getBemerkung();
-							Statement sta2 = conn.createStatement();
-							log.trace("info:" + info);
-							String do_insert =
-								"insert into " + FixMediTable + " values ( \"" + id + "\", \""
-									+ info + "\");";
-							sta2.executeUpdate(do_insert);
-							sta2.close();
+							if (item.getArtikel() == null) {
+								String bem = item.getBemerkung();
+								log.trace(id +": getArtikel is null for " +i + " bem: " + bem + " " + item.getBeginDate() + " exists " +item.exists());
+								// This does not work + " " + item.exportData());
+								// ch.elexis.core.exceptions.PersistenceException: Fehler in der Datenbanksyntax.
+							} else {
+								String name = item.getArtikel().getName();
+								String codename = item.getArtikel().getCodeSystemName();
+								log.debug("info:" + name + " : " + codename);
+								String info =
+									getArtikelName(item) + " " + item.getEndDate() + " "
+										+ item.getDosis() + " " + item.getBemerkung();
+								Statement sta2 = conn.createStatement();
+									log.info(id + " info:" + info + " msg " + name);
+								String do_insert =
+									"insert into " + FixMediTable + " values ( \"" + id + "\", \""
+										+ info +  "\", \"" + codename + "\");";
+								sta2.executeUpdate(do_insert);
+								sta2.close();
+							}
 						}
 						idx += 1;
 					}
@@ -188,7 +209,7 @@ public class Helpers {
 	
 	public static String copy_table(String table){
 		String tableCopy = String.format("vem_%1$s", table);
-		ArrayList<String> copyStmts = new ArrayList<String>();
+		ArrayList<String> copyStmts = new ArrayList<>();
 		copyStmts.add(String.format("DROP TABLE IF EXISTS  %1$s", tableCopy));
 		copyStmts.add(String.format("CREATE TABLE %2$s LIKE %1$s", table, tableCopy));
 		if (table.toLowerCase().equals("kontakt")) {
@@ -228,65 +249,65 @@ public class Helpers {
 		return tableCopy;
 	}
 	
-	public static void addDiagnosesToVemKontakt(String table_name, String id){
-		String query = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		int j = 0, errors = 0;
-		query = "Select * from " + table_name;
-		if (id != null) {
-			query += " where id = '" + id + "'"; // Allow limiting query for debugging 
-		}
-		showProgress("Starting Query " + query);
-		String pat_id = null;
-		Patient patient = null;
+	public static void dumpToYaml(String id){
+	    //
+	    DumperOptions options = new DumperOptions();
+	    // options.setWidth(120);
+	    // options.setIndent(2);
+	    options.setCanonical(true);
+		Yaml yaml = new Yaml(options);
 		try {
-			stmt =
-				conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			conn.setAutoCommit(false);
-			
-			rs = stmt.executeQuery(query);
-			while (rs.next()) {
-				j++;
-				try {
-					pat_id = rs.getString("id");
-					patient = Patient.load(pat_id);
-					if (j % 8000 == 1) {
-						log.debug("\naddDiagnosesToVemKontakt: at pat_id  " + pat_id + " j: "
-							+ (j - 1));
-						conn.commit();
+			System.out.println(System.getProperty("user.dir"));
+			PrintWriter writer1 = new PrintWriter("demo_db_dump.txt", "UTF-8");
+			String query = null;
+			Statement stmt = null;
+			ResultSet rs = null;
+			int j = 0, errors = 0;
+			query = "Select * from kontakt";
+			if (id != null) {
+				query += " where id = '" + id + "'"; // Allow limiting query for debugging
+			}
+			showProgress("Starting Query " + query);
+			String pat_id = null;
+			Kontakt patient = null;
+			jdbc = PersistentObject.getConnection();
+			conn = jdbc.getConnection();
+			try {
+				stmt =
+					conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+						ResultSet.CONCUR_UPDATABLE);
+				conn.setAutoCommit(false);
+				rs = stmt.executeQuery(query);
+				while (rs.next()) {
+					j++;
+					try {
+						pat_id = rs.getString("id");
+						patient = Kontakt.load(pat_id);
+						yaml.dump(patient, writer1);
+					} catch (SQLException e1) {
+						errors++;
 					}
-					rs.updateString("diagnosen_text", patient.getDiagnosen());
-					rs.updateString("famanamnese_text", patient.getFamilyAnamnese());
-					rs.updateString("persanamnese_text", patient.getPersAnamnese());
-					if (!patient.getSystemAnamnese().contains("**ERROR:")) {
-						rs.updateString("sysanamnese_text", patient.getSystemAnamnese());
+				}
+				conn.setAutoCommit(true);
+				stmt.close();
+			} catch (SQLException e1) {
+				showProgress("addDiagnosesToVemKontakt: vem_kontakt nr "
+					+ " id " + pat_id + "\n" + e1.getMessage() + " j: " + j);
+			} finally {
+				if (stmt != null) {
+					try {
+						stmt.close();
+					} catch (SQLException e) {
+						showProgress("Fehler bei stmt.close vem_kontakt " + e.getMessage());
 					}
-					rs.updateRow();
-				} catch (SQLException e1) {
-					showProgress("addDiagnosesToVemKontakt: vem_kontakt nr "
-							+ patient.getPatCode() + " id " + pat_id + "\n" + e1.getMessage() + " j: " + j);
-					errors++;
 				}
 			}
-			conn.setAutoCommit(true);
-			stmt.close();
-			
-		} catch (SQLException e1) {
-			showProgress("addDiagnosesToVemKontakt: vem_kontakt nr "
-					+ patient.getPatCode() + " id " + pat_id + "\n" + e1.getMessage() + " j: " + j);
-			
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					showProgress("Fehler bei stmt.close vem_kontakt " + e.getMessage());
-				}
-			}
+			showProgress(String.format("Table vem_kontakt updated %1$d rows with %2$d errors", j,
+				errors));
+		} catch (FileNotFoundException | UnsupportedEncodingException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
 		}
-		showProgress(String.format("Table vem_kontakt updated %1$d rows with %2$d errors", j,
-			errors));
 		
 	}
 	
@@ -364,4 +385,63 @@ public class Helpers {
 		
 	}
 	
+	public static void addDiagnosesToVemKontakt(String table_name, String id){
+		String query = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		int j = 0, errors = 0;
+		query = "Select * from " + table_name;
+		if (id != null) {
+			query += " where id = '" + id + "'"; // Allow limiting query for debugging
+		}
+		showProgress("Starting Query " + query);
+		String pat_id = null;
+		Patient patient = null;
+		try {
+			stmt =
+				conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			conn.setAutoCommit(false);
+			rs = stmt.executeQuery(query);
+			while (rs.next()) {
+				j++;
+				try {
+					pat_id = rs.getString("id");
+					patient = Patient.load(pat_id);
+					if (j % 500 == 1) {
+						log.debug("\naddDiagnosesToVemKontakt: at pat_id  " + pat_id + " j: "
+							+ (j - 1));
+						conn.commit();
+					}
+					rs.updateString("diagnosen_text", patient.getDiagnosen());
+					rs.updateString("famanamnese_text", patient.getFamilyAnamnese());
+					rs.updateString("persanamnese_text", patient.getPersAnamnese());
+					/*
+					if (!patient.getSystemAnamnese().contains("**ERROR:")) {
+						rs.updateString("sysanamnese_text", patient.getSystemAnamnese());
+					}
+					*/
+					rs.updateRow();
+				} catch (SQLException e1) {
+					showProgress("addDiagnosesToVemKontakt: vem_kontakt nr " + patient.getPatCode()
+						+ " id " + pat_id + "\n" + e1.getMessage() + " j: " + j);
+					errors++;
+				}
+			}
+			conn.setAutoCommit(true);
+			stmt.close();
+		} catch (SQLException e1) {
+			showProgress("addDiagnosesToVemKontakt: vem_kontakt nr " + patient.getPatCode()
+				+ " id " + pat_id + "\n" + e1.getMessage() + " j: " + j);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					showProgress("Fehler bei stmt.close vem_kontakt " + e.getMessage());
+				}
+			}
+		}
+		showProgress(String.format("Table vem_kontakt updated %1$d rows with %2$d errors", j,
+			errors));
+	}
 }

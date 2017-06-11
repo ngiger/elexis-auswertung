@@ -2,7 +2,7 @@
 <feature
       id="ch.ngiger.elexis.auswertung.feature"
       label="Elexis Auswertung Feature"
-      version="3.0.0.qualifier"
+      version="3.1.0.qualifier"
       provider-name="niklaus.giger@member.fsf.org">
 
    <description>
@@ -19,6 +19,13 @@
 
    <plugin
          id="ch.ngiger.elexis.auswertung"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.yaml.snakeyaml"
          download-size="0"
          install-size="0"
          version="0.0.0"
