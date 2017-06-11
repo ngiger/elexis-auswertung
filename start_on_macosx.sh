@@ -9,10 +9,10 @@ echo "Launching ElexisAuswertung"
 # ch.elexis.username    username when logging in to elexis
 # -Dch.elexis.password  password when logging in to elexis
 
-./ch.ngiger.elexis.auswertung.products/target/products/ch.ngiger.elexis.auswertung.EA/linux/gtk/x86_64/ElexisAuswertung \
+./ch.ngiger.elexis.auswertung.products/target/products/ch.ngiger.elexis.auswertung.EA/macosx/cocoa/x86_64/ElexisAuswertung.app/Contents/MacOS/ElexisAuswertung \
 -consoleLog -noExit -debug -vmargs \
 -Dch.elexis.dbUser=elexis -Dch.elexis.dbPw=elexisTest \
--Dch.elexis.dbFlavor=mysql  -Dch.elexis.dbSpec=jdbc:mysql://localhost/elexisdb \
+-Dch.elexis.dbFlavor=mysql  -Dch.elexis.dbSpec=jdbc:mysql://192.168.0.70/elexisdb \
 -Dch.elexis.username=007 -Dch.elexis.password=topsecret
 
 
