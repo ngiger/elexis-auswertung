@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,27 +27,41 @@ public class Helpers {
 	private static Logger log = LoggerFactory.getLogger(Helpers.class);
 	private static ch.rgw.tools.JdbcLink jdbc;
 	private static Connection conn = null;
-	private static String FixMediTable = "vem_fixmedi";
+	private static String MediTable = "vem_medi";
 	/*
 create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_kontakt.Bezeichnung2, vem_kontakt.Geburtsdatum,
-	vem_fixmedi.info, vem_fixmedi.codename from vem_kontakt, vem_fixmedi
-	where vem_fixmedi.id = vem_kontakt.id;
+	vem_medi.info, vem_medi.typ, vem_medi.codename from vem_kontakt, vem_medi
+	where vem_medi.id = vem_kontakt.id;
 	 */
 	/**
 	 * @param args
 	 */
-	public static void addFixMediAuswertungTable(){
+	public static void addMediAuswertungTable(){
 		String query = null;
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
-			query = "drop table if exists " + FixMediTable + ";";
+			query = "drop table if exists " + MediTable + ";";
 			stmt.executeUpdate(query);
 			stmt.close();
 			stmt = conn.createStatement();
 			query =
-				"create table if not exists " + FixMediTable
-					+ " ( id Varchar(25), info varchar(255), codename varchar(80)); ";
+				"create table if not exists " + MediTable
+					+ " ( id Varchar(25),"
+					+ " info varchar(255),"
+					+ " typ varchar(80),"
+					+ " codename varchar(80)); ";
+			stmt.executeUpdate(query);
+			stmt.close();
+			stmt = conn.createStatement();
+			query = "drop view if exists vem_info;";
+			stmt.executeUpdate(query);
+			stmt = conn.createStatement();
+			query = "create view vem_info as select"
+			+ " vem_kontakt.id, vem_kontakt.Bezeichnung1, vem_kontakt.Bezeichnung2, vem_kontakt.Geburtsdatum,"
+			+ " vem_medi.info,   vem_medi.typ,            vem_medi.codename"
+			+ " from vem_kontakt, vem_medi"
+			+ " where vem_medi.id = vem_kontakt.id;";
 			stmt.executeUpdate(query);
 			stmt.close();
 		} catch (SQLException e1) {
@@ -83,7 +98,7 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 	public static void addFixMediAuswertung(String pat_id){
 		jdbc = PersistentObject.getConnection();
 		conn = jdbc.getConnection();
-		addFixMediAuswertungTable();
+		addMediAuswertungTable();
 		try {
 			Statement sta = conn.createStatement();
 			conn.setAutoCommit(false); // To speed up things
@@ -101,12 +116,11 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 					log.trace("Kein Patient for id: " + id);
 				} else {
 					must_debug = id.equals("C385b623f459dadc8032");
-
-					Prescription[] presc = pat.getFixmedikation();
-					if (presc.length > 0) {
-						log.debug(pat.getPersonalia() + " fix medit hat " + presc.length + " Eintraege");
-						for (int i = 0; i < presc.length; i++) {
-							Prescription item = presc[i];
+					List<Prescription> presc = pat.getMedication(null);
+					if (presc.size() > 0) {
+						log.debug(pat.getPersonalia() + " fix medit hat " + presc.size() + " Eintraege");
+						for (int i = 0; i < presc.size(); i++) {
+							Prescription item = presc.get(i);
 							if (item.getArtikel() == null) {
 								String bem = item.getBemerkung();
 								log.trace(id +": getArtikel is null for " +i + " bem: " + bem + " " + item.getBeginDate() + " exists " +item.exists());
@@ -114,16 +128,17 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 								// ch.elexis.core.exceptions.PersistenceException: Fehler in der Datenbanksyntax.
 							} else {
 								String name = item.getArtikel().getName();
+								String typ = item.getEntryType().name().toString();
 								String codename = item.getArtikel().getCodeSystemName();
-								log.debug("info:" + name + " : " + codename);
+								log.debug("info:" + name + " : typ "+ typ + " code " + codename);
 								String info =
 									getArtikelName(item) + " " + item.getEndDate() + " "
 										+ item.getDosis() + " " + item.getBemerkung();
 								Statement sta2 = conn.createStatement();
 									log.info(id + " info:" + info + " msg " + name);
 								String do_insert =
-									"insert into " + FixMediTable + " values ( \"" + id + "\", \""
-										+ info +  "\", \"" + codename + "\");";
+									"insert into " + MediTable + " values ( \"" + id + "\", \""
+											+ info +  "\", \"" + typ +  "\", \"" + codename + "\");";
 								sta2.executeUpdate(do_insert);
 								sta2.close();
 							}
