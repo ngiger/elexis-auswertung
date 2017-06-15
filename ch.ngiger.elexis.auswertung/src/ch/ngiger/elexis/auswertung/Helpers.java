@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,12 +16,15 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import at.medevit.ch.artikelstamm.ArtikelstammConstants.TYPE;
+import ch.artikelstamm.elexis.common.ArtikelstammItem;
 import ch.elexis.data.Artikel;
 import ch.elexis.data.Kontakt;
 import ch.elexis.data.Patient;
 import ch.elexis.data.PersistentObject;
 import ch.elexis.data.Prescription;
 import ch.rgw.tools.JdbcLink.Stm;
+import ch.rgw.tools.TimeTool;
 
 public class Helpers {
 	
@@ -50,6 +54,8 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 					+ " ( id Varchar(25),"
 					+ " info varchar(255),"
 					+ " typ varchar(80),"
+					+ " beginDate varchar(32),"
+					+ " endDate varchar(32),"
 					+ " codename varchar(80)); ";
 			stmt.executeUpdate(query);
 			stmt.close();
@@ -59,7 +65,7 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 			stmt = conn.createStatement();
 			query = "create view vem_info as select"
 			+ " vem_kontakt.id, vem_kontakt.Bezeichnung1, vem_kontakt.Bezeichnung2, vem_kontakt.Geburtsdatum,"
-			+ " vem_medi.info,   vem_medi.typ,            vem_medi.codename"
+			+ " vem_medi.info, vem_medi.beginDate, vem_medi.endDate, vem_medi.typ, vem_medi.codename"
 			+ " from vem_kontakt, vem_medi"
 			+ " where vem_medi.id = vem_kontakt.id;";
 			stmt.executeUpdate(query);
@@ -99,6 +105,10 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 		jdbc = PersistentObject.getConnection();
 		conn = jdbc.getConnection();
 		addMediAuswertungTable();
+		// Force activation of Artikelstamm
+		int pharmaCumulV = ArtikelstammItem.getImportSetCumulatedVersion(TYPE.P);
+		System.out.println("pharmaCumulV " +pharmaCumulV);
+
 		try {
 			Statement sta = conn.createStatement();
 			conn.setAutoCommit(false); // To speed up things
@@ -115,22 +125,48 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 				if (!pat.istPatient()) {
 					log.trace("Kein Patient for id: " + id);
 				} else {
-					must_debug = id.equals("C385b623f459dadc8032");
+					// must_debug = id.equals("xe463bcde90ea361601270");
+					// if (!must_debug)	continue;
 					List<Prescription> presc = pat.getMedication(null);
+					int nr_medis_found = 0;
 					if (presc.size() > 0) {
-						log.debug(pat.getPersonalia() + " fix medit hat " + presc.size() + " Eintraege");
+						System.out.println(pat.getPersonalia() + " fix medit hat " + presc.size() + " Eintraege");
 						for (int i = 0; i < presc.size(); i++) {
 							Prescription item = presc.get(i);
 							if (item.getArtikel() == null) {
 								String bem = item.getBemerkung();
-								log.trace(id +": getArtikel is null for " +i + " bem: " + bem + " " + item.getBeginDate() + " exists " +item.exists());
+								System.out.println("Skip " + id +": getArtikel is null for " +i + " bem: " + bem + " " + item.getBeginDate() + " exists " +item.exists());
 								// This does not work + " " + item.exportData());
 								// ch.elexis.core.exceptions.PersistenceException: Fehler in der Datenbanksyntax.
 							} else {
 								String name = item.getArtikel().getName();
 								String typ = item.getEntryType().name().toString();
 								String codename = item.getArtikel().getCodeSystemName();
-								log.debug("info:" + name + " : typ "+ typ + " code " + codename);
+								String endDateString = item.getEndDate();
+								LocalDate beginDate = new TimeTool(item.getBeginDate()).toLocalDate();
+								LocalDate endDate = new TimeTool(item.getEndDate()).toLocalDate();
+								if (item.isReserveMedication()) {
+									System.out.println("Skip isReserveMedication" + name);
+									continue;
+								}
+								// Check begin / end dates for recipes
+								if (typ.contentEquals("RECIPE")) {
+									LocalDate today = new TimeTool().toLocalDate();
+									if ( item.getEndDate().length() > 0) {
+										if (endDate.isBefore(today)) {
+											System.out.println("RECIPE end: is before " + today + " " + name + " endDate " + endDateString);
+											continue;
+										}
+									}
+									if (beginDate.isBefore(today.minusDays(180))) {
+										System.out.println("RECIPE begin: is before " + today + " - 180 Tage" + name + " beginDate " + beginDate);
+										continue;
+									}
+								}
+								String msg = typ + ": Adding " + name + " code " + codename
+										 + " isReserveMedication " +item.isReserveMedication()
+										 + " von " + beginDate + " bis '" +  endDateString + "'";
+								System.out.println(msg);
 								String info =
 									getArtikelName(item) + " " + item.getEndDate() + " "
 										+ item.getDosis() + " " + item.getBemerkung();
@@ -138,11 +174,14 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 									log.info(id + " info:" + info + " msg " + name);
 								String do_insert =
 									"insert into " + MediTable + " values ( \"" + id + "\", \""
-											+ info +  "\", \"" + typ +  "\", \"" + codename + "\");";
+											+ info +  "\", \"" + typ  +  "\", \""
+											+ beginDate +  "\", \"" + endDateString +  "\", \"" + codename + "\");";
 								sta2.executeUpdate(do_insert);
 								sta2.close();
+								nr_medis_found++;
 							}
 						}
+						System.out.println(pat.getPersonalia() + " added " + nr_medis_found + " of " + presc.size() + " medis");
 						idx += 1;
 					}
 				}
