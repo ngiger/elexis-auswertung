@@ -15,7 +15,7 @@ public class Activator extends AbstractUIPlugin {
 	
 	public Activator(){
 		// TODO Auto-generated constructor stub
-		System.out.println("ch.elexis.auswertung.Activator Starting");
+		log.debug("ch.elexis.auswertung.Activator Starting");
 		dataLoader = new Converter();
 		dataLoader.schedule();
 	}
@@ -28,14 +28,12 @@ public class Activator extends AbstractUIPlugin {
 		@Override
 		protected IStatus run(IProgressMonitor monitor){
 			// TODO Auto-generated method stub
-			System.out.println("run");
 			try {
 				Thread.sleep(10*1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			System.out.println("After 10 seconds");
 			runConversion();
 			finish();
 			return null;
@@ -49,14 +47,12 @@ public class Activator extends AbstractUIPlugin {
 		 from vem_kontakt where id = 'C385b623f459dadc8032';
 		 */
 		String tableCopy = Helpers.createKontaktCopy(id);
-		// Helpers.removeNonPatiensFromKontaktCopy();
 		Helpers.addDiagnosesToVemKontakt(tableCopy, id);
 		Helpers.addFixMediAuswertung(id);
 	}
 	private void finish() {
 		PersistentObject.disconnect();
-		System.exit(2);
-
+		System.exit(1);
 	}
 	
 }

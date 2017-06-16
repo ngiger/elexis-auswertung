@@ -54,6 +54,8 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 					+ " ( id Varchar(25),"
 					+ " info varchar(255),"
 					+ " typ varchar(80),"
+					+ " dosis varchar(255),"
+					+ " disposal varchar(255),"
 					+ " beginDate varchar(32),"
 					+ " endDate varchar(32),"
 					+ " codename varchar(80)); ";
@@ -65,7 +67,7 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 			stmt = conn.createStatement();
 			query = "create view vem_info as select"
 			+ " vem_kontakt.id, vem_kontakt.Bezeichnung1, vem_kontakt.Bezeichnung2, vem_kontakt.Geburtsdatum,"
-			+ " vem_medi.info, vem_medi.beginDate, vem_medi.endDate, vem_medi.typ, vem_medi.codename"
+			+ " vem_medi.info, vem_medi.beginDate, vem_medi.endDate, vem_medi.typ, vem_medi.dosis, vem_medi.disposal, vem_medi.codename"
 			+ " from vem_kontakt, vem_medi"
 			+ " where vem_medi.id = vem_kontakt.id;";
 			stmt.executeUpdate(query);
@@ -107,10 +109,11 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 		addMediAuswertungTable();
 		// Force activation of Artikelstamm
 		int pharmaCumulV = ArtikelstammItem.getImportSetCumulatedVersion(TYPE.P);
-		System.out.println("pharmaCumulV " +pharmaCumulV);
+		log.info("pharmaCumulV " +pharmaCumulV);
+		Statement sta = null;
 
 		try {
-			Statement sta = conn.createStatement();
+			sta = conn.createStatement();
 			conn.setAutoCommit(false); // To speed up things
 			String query = "SELECT ID, Bezeichnung1 FROM kontakt";
 			if (pat_id != null) {
@@ -130,73 +133,79 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 					List<Prescription> presc = pat.getMedication(null);
 					int nr_medis_found = 0;
 					if (presc.size() > 0) {
-						System.out.println(pat.getPersonalia() + " fix medit hat " + presc.size() + " Eintraege");
+						log.trace(pat.getPersonalia() + " fix medit hat " + presc.size() + " Eintraege");
 						for (int i = 0; i < presc.size(); i++) {
 							Prescription item = presc.get(i);
 							if (item.getArtikel() == null) {
 								String bem = item.getBemerkung();
-								System.out.println("Skip " + id +": getArtikel is null for " +i + " bem: " + bem + " " + item.getBeginDate() + " exists " +item.exists());
+								log.trace("Skip " + id +": getArtikel is null for " +i + " bem: " + bem + " " + item.getBeginDate() + " exists " +item.exists());
 								// This does not work + " " + item.exportData());
 								// ch.elexis.core.exceptions.PersistenceException: Fehler in der Datenbanksyntax.
 							} else {
 								String name = item.getArtikel().getName();
 								String typ = item.getEntryType().name().toString();
 								String codename = item.getArtikel().getCodeSystemName();
-								String endDateString = item.getEndDate();
+								String disposal = "";
+								if (item.getDisposalComment() != null) {
+									disposal = item.getDisposalComment();
+								}
+								String dosis = "";
+								if (item.getDosis() != null)
+								{
+									dosis = item.getDosis();
+								}
+								String endDateString  = "";
+								if (item.getSuppliedUntilDate() != null) {
+									endDateString = item.getSuppliedUntilDate().toLocalDate().toString();
+								}
 								LocalDate beginDate = new TimeTool(item.getBeginDate()).toLocalDate();
-								LocalDate endDate = new TimeTool(item.getEndDate()).toLocalDate();
-								if (item.isReserveMedication()) {
-									System.out.println("Skip isReserveMedication" + name);
-									continue;
-								}
-								// Check begin / end dates for recipes
-								if (typ.contentEquals("RECIPE")) {
-									LocalDate today = new TimeTool().toLocalDate();
-									if ( item.getEndDate().length() > 0) {
-										if (endDate.isBefore(today)) {
-											System.out.println("RECIPE end: is before " + today + " " + name + " endDate " + endDateString);
-											continue;
-										}
-									}
-									if (beginDate.isBefore(today.minusDays(180))) {
-										System.out.println("RECIPE begin: is before " + today + " - 180 Tage" + name + " beginDate " + beginDate);
-										continue;
-									}
-								}
 								String msg = typ + ": Adding " + name + " code " + codename
 										 + " isReserveMedication " +item.isReserveMedication()
 										 + " von " + beginDate + " bis '" +  endDateString + "'";
-								System.out.println(msg);
+								log.trace(msg);
 								String info =
 									getArtikelName(item) + " " + item.getEndDate() + " "
 										+ item.getDosis() + " " + item.getBemerkung();
+								if (info.length() > 255)
+								{
+									info = info.substring(0, 254);
+								}
 								Statement sta2 = conn.createStatement();
-									log.info(id + " info:" + info + " msg " + name);
+									log.trace(id + " info:" + info + " msg " + name);
 								String do_insert =
 									"insert into " + MediTable + " values ( \"" + id + "\", \""
 											+ info +  "\", \"" + typ  +  "\", \""
+											+ dosis +  "\", \"" + disposal  +  "\", \""
 											+ beginDate +  "\", \"" + endDateString +  "\", \"" + codename + "\");";
+								// log.info(do_insert);
 								sta2.executeUpdate(do_insert);
 								sta2.close();
+//								conn.setAutoCommit(false); // don't commit after first after first medi
 								nr_medis_found++;
 							}
 						}
-						System.out.println(pat.getPersonalia() + " added " + nr_medis_found + " of " + presc.size() + " medis");
+						log.trace(pat.getPersonalia() + " added " + nr_medis_found + " of " + presc.size() + " medis");
 						idx += 1;
+//						conn.setAutoCommit(true); // commit after each patient
 					}
 				}
 			}
 			log.info("Anzahl Patienten mit Fixmedi: " + idx);
 			sta.close();
-			conn.setAutoCommit(true);
-			conn.close();
 		} catch (Exception e) {
-			log.warn("Exception: " + e.getMessage());
+			log.warn("Exception while creating vem_medi: " + e.getMessage());
+		} finally {
+			try {
+				conn.setAutoCommit(true);
+				conn.close();
+			} catch (SQLException e) {
+				log.warn("Exception while autocommit/closing : " + e.getMessage());
+			}
 		}
 	}
 	
 	static void showProgress(String msg){
-		System.out.println(msg);
+		log.info(msg);
 		log.info(msg);
 	}
 	
@@ -311,7 +320,7 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 	    options.setCanonical(true);
 		Yaml yaml = new Yaml(options);
 		try {
-			System.out.println(System.getProperty("user.dir"));
+			log.info(System.getProperty("user.dir"));
 			PrintWriter writer1 = new PrintWriter("demo_db_dump.txt", "UTF-8");
 			String query = null;
 			Statement stmt = null;
@@ -382,61 +391,11 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 		
 		for (int i = 0; i < anArray.length; i++) {
 			String fieldName = anArray[i];
-			System.out.println("Adding field " + fieldName);
+			log.info("Adding field " + fieldName);
 			Db_extinfo_updater.jdbcConvertExtInfo("vem_kontakt", fieldName, id);
 		}
 		wait_some_time();
 		return tableCopy;
-	}
-	
-	public static void convertBlobIntoVarchar(String table, String field_name){
-		String new_field = field_name + "_text";
-		String query = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		int j = 0;
-		String value = "";
-		add_field_to_table(table, new_field);
-		
-		query = "Select * from " + table + " where " + field_name + " is not null ";
-		showProgress("Starting Query " + query);
-		
-		try {
-			stmt =
-				conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			conn.setAutoCommit(false);
-			
-			rs = stmt.executeQuery(query);
-			while (rs.next()) {
-				j++;
-				if (j % 8000 == 1) {
-					log.debug(String.format("\n%1$20s: %2$6d ", table, j - 1));
-					conn.commit();
-				}
-				// TODO: really convert extinfo
-				rs.updateRow();
-			}
-			stmt.close();
-			
-		} catch (SQLException e1) {
-			showProgress("convertBlobIntoVarchar: SQLException Tabelle " + table + " "
-				+ e1.getMessage());
-			showProgress(" Query was " + query);
-			String msg =
-				String.format("%1$s %2$d field %3$s value %4$s", table, j, new_field, value);
-			showProgress(msg);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					showProgress("Fehler bei stmt.close" + table + " " + e.getMessage());
-				}
-			}
-		}
-		showProgress(String.format("Table %1$s updated %2$d rows with field %3$s", table, j,
-			field_name));
-		
 	}
 	
 	public static void addDiagnosesToVemKontakt(String table_name, String id){
