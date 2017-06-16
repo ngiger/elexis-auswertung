@@ -9,10 +9,9 @@ echo "Launching ElexisAuswertung"
 # ch.elexis.username    username when logging in to elexis
 # -Dch.elexis.password  password when logging in to elexis
 
-./ch.ngiger.elexis.auswertung.products/target/products/ch.ngiger.elexis.auswertung.EA/linux/gtk/x86_64/ElexisAuswertung \
--consoleLog -noExit -debug -vmargs \
+time ./ch.ngiger.elexis.auswertung.products/target/products/ch.ngiger.elexis.auswertung.EA/linux/gtk/x86_64/ElexisAuswertung \
+--launcher.suppressErrors \
+-vmargs \
 -Dch.elexis.dbUser=elexis -Dch.elexis.dbPw=elexisTest \
 -Dch.elexis.dbFlavor=mysql  -Dch.elexis.dbSpec=jdbc:mysql://localhost/elexisdb \
--Dch.elexis.username=007 -Dch.elexis.password=topsecret
-
-
+-Dch.elexis.username=007 -Dch.elexis.password=topsecret 2>&1 | tee batch.log

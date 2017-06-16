@@ -51,6 +51,8 @@ In einem zweiten Schritt (aber erst ab Elexis 3.1) soll noch die Fixmedikation h
 
 h2. Hints for programmers
 
+To get rid of the annoying message "No exit data" after running the application, I add the option @--launcher.suppressErrors@ in batch.sh
+
 h3. requirements
 
 You need the following tools git, maven (Version 3.0.5), java (Version 7 or higher), then the following steps should work
@@ -64,4 +66,6 @@ This application runs a bare Elexis on the console. It demonstrates the headless
 This allows to access an Elexis database without starting a full graphical system. Import all the eclipse project into your Eclipse IDE.
 
 To start the application right click on @Auswertung.product.launch@ and select @Run As..Auswertung.product@.
+
+
 
