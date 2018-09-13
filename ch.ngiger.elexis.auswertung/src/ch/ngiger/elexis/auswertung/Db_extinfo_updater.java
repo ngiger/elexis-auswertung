@@ -333,7 +333,7 @@ public class Db_extinfo_updater {
 							getFieldLength(extFieldName)));
 					}
 				}
-				String addStatement = sb.toString();
+				String addStatement = sb == null ? "": sb.toString();
 				try {
 					Helpers.showProgress(addStatement);
 					Statement addStmt;
@@ -350,7 +350,7 @@ public class Db_extinfo_updater {
 			jdbcConvertExtInfo(table, fieldName, null);
 		} catch (SecurityException e) {
 			// TODO Auto-generated catch block
-			Helpers.showProgress("SecurityException executing " + method.getName());
+			Helpers.showProgress("SecurityException executing " + ( method == null ? "" : method.getName()));
 		}
 		
 		Helpers.showProgress(String.format("Query for fields %2$s returned %1$d rows", j,

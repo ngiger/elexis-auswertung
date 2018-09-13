@@ -10,129 +10,36 @@
     <module>ch.ngiger.elexis.auswertung.products</module>
   </modules>
   <properties>
-    <tycho-version>0.22.0</tycho-version>
+    <tycho-version>1.2.0</tycho-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <tycho-extras.version>${tycho-version}</tycho-extras.version>
     <juno-repo.url>http://download.eclipse.org/releases/juno</juno-repo.url>
     <tycho-repo.url>https://oss.sonatype.org/content/groups/public/</tycho-repo.url>
     <repo_name>elexis.3.base</repo_name>
-    <repo_variant>prerelease</repo_variant>
-    <useBranch>release</useBranch>
-    <nonElexisP2variant>release</nonElexisP2variant>
+    <git.core.branch>3.6</git.core.branch>
+    <git.target.branch>3.6</git.target.branch>
     <ROOT>${project.basedir}/compositeRepository</ROOT>
   </properties>
   <packaging>pom</packaging>
-	<profiles>
-		<profile>
-			<id>prerelease</id>
-			<activation>
-				<property>
-					<name>repo_variant</name>
-					<value>prerelease</value>
-				</property>
-			</activation>
-			<properties>
-				<nonElexisP2variant>release</nonElexisP2variant>
-				<useBranch>release</useBranch>
-			</properties>
-		</profile>
-		<profile>
-			<id>release</id>
-			<activation>
-				<property>
-					<name>repo_variant</name>
-					<value>release</value>
-				</property>
-			</activation>
-			<properties>
-				<nonElexisP2variant>release</nonElexisP2variant>
-				<useBranch>release</useBranch>
-			</properties>
-		</profile>
-		<!-- activate operating system dependent testing vm args -->
-		<profile>
-			<id>mac-surefire-tests</id>
-			<activation>
-				<os><family>mac</family></os>
-			</activation>
-			<properties> <!-- Do not linebreak! https://bugs.eclipse.org/bugs/show_bug.cgi?id=427693 -->
-				<elexis.ui.test.vmargs>-DjdbcLink=org.h2.Driver:mem:mem_test;AUTO_SERVER=TRUE -Dch.elexis.username=007 -Dch.elexis.password=topsecret -Delexis-run-mode=RunFromScratch -XstartOnFirstThread</elexis.ui.test.vmargs>
-			</properties>
-		</profile>
-		<profile>
-			<id>non-mac-surefire-tests</id>
-			<activation>
-				<os><family>!mac</family></os>
-			</activation>
-			<properties> <!-- Do not linebreak! https://bugs.eclipse.org/bugs/show_bug.cgi?id=427693 -->
-				<elexis.ui.test.vmargs>-DjdbcLink=org.h2.Driver:mem:mem_test;AUTO_SERVER=TRUE -Dch.elexis.username=007 -Dch.elexis.password=topsecret -Delexis-run-mode=RunFromScratch</elexis.ui.test.vmargs>
-			</properties>
-		</profile>
-		<!-- activate operating system dependent testing vm args -->
-	</profiles>
 <repositories>
   <repository>
-    <id>elexis.3.core.${repo_variant}</id>
-    <url>http://download.elexis.info/elexis.3.core/${repo_variant}/</url>
+    <id>elexis.3.target</id>
+    <url>http://download.elexis.info/elexis/${git.target.branch}/p2/target</url>
     <layout>p2</layout>
   </repository>
-  <repository>
-    <id>elexis.3.base.${repo_variant}</id>
-    <url>http://download.elexis.info/elexis.3.base/${repo_variant}/</url>
+   <repository>
+    <id>elexis.3.core</id>
+    <url>http://download.elexis.info/elexis/${git.core.branch}/p2/elexis-3-core</url>
     <layout>p2</layout>
   </repository>
-  <!--repository>
-<id>my_local_mirror</id>
-<url>file:///opt/mirror.4.elexis/target/repository/</url>
-<layout>p2</layout>
-</repository-->
-  <repository>
-    <id>mirror.4.elexis.${repo_variant}</id>
-    <url>http://download.elexis.info/mirror.4.elexis/${nonElexisP2variant}/</url>
-    <layout>p2</layout>
-  </repository>
-  <repository>
-    <id>elexis.3.3rdparty.libraries</id>
-    <url>http://download.elexis.info/elexis.3.3rdparty.libraries/${nonElexisP2variant}</url>
+   <repository>
+    <id>elexis.3.base</id>
+    <url>http://download.elexis.info/elexis/${git.core.branch}/p2/elexis-3-base</url>
     <layout>p2</layout>
   </repository>
 </repositories>
 <build>
   <plugins>
-		<plugin>
-      <groupId>org.eclipse.tycho.extras</groupId>
-      <artifactId>tycho-source-feature-plugin</artifactId>
-      <version>${tycho-extras.version}</version>
-      <executions>
-        <execution>
-          <id>source-feature</id>
-          <phase>package</phase>
-          <goals>
-            <goal>source-feature</goal>
-          </goals>
-          <configuration>
-            <excludes>
-              <plugin id="bouncycastle.bcprov"/>
-              <plugin id="bouncycastle.bcprov-jdk14"/>
-              <plugin id="bcprov"/>
-              <plugin id="org.apache.xerces"/>
-              <plugin id="de.kupzog.ktable"/>
-              <plugin id="xerces.Impl"/>
-              <plugin id="xml-apis"/>
-              <plugin id="javax.xml"/>
-              <plugin id="org.apache.commons.logging"/>
-              <plugin id="org.apache.xml.resolver"/>
-              <plugin id="org.apache.xml.serializer"/>
-              <plugin id="jfree.chart"/>
-              <plugin id="jfree.chart-experimental"/>
-              <plugin id="jfree.chart-swt"/>
-              <plugin id="jfree.jcommon"/>
-              <plugin id="junit"/>
-            </excludes>
-          </configuration>
-        </execution>
-      </executions>
-    </plugin>
     <plugin>
       <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-p2-plugin</artifactId>
@@ -157,10 +64,39 @@
       <groupId>org.eclipse.tycho</groupId>
       <artifactId>target-platform-configuration</artifactId>
       <configuration>
+        <dependency-resolution>
+          <extraRequirements>
+              <requirement>
+                <type>eclipse-plugin</type>
+                <id>javax.servlet</id>
+                <versionRange>0.0.0</versionRange>
+              </requirement>
+              <requirement>
+                <type>eclipse-plugin</type>
+                <id>javax.xml</id>
+                <versionRange>0.0.0</versionRange>
+              </requirement>
+          </extraRequirements>
+        </dependency-resolution>
         <environments>
           <environment>
             <os>linux</os>
             <ws>gtk</ws>
+            <arch>x86</arch>
+          </environment>
+          <environment>
+            <os>linux</os>
+            <ws>gtk</ws>
+            <arch>x86_64</arch>
+          </environment>
+          <environment>
+            <os>win32</os>
+            <ws>win32</ws>
+            <arch>x86</arch>
+          </environment>
+          <environment>
+            <os>win32</os>
+            <ws>win32</ws>
             <arch>x86_64</arch>
           </environment>
           <environment>
@@ -171,18 +107,6 @@
         </environments>
       </configuration>
     </plugin>
-    <plugin>
-      <groupId>org.eclipse.tycho</groupId>
-      <artifactId>tycho-source-plugin</artifactId>
-      <executions>
-        <execution>
-          <id>plugin-source</id>
-          <goals>
-            <goal>plugin-source</goal>
-          </goals>
-        </execution>
-      </executions>
-    </plugin>
   </plugins>
   <pluginManagement>
     <plugins>
@@ -191,8 +115,8 @@
         <artifactId>maven-compiler-plugin </artifactId>
         <version>3.1</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7 </target>
+          <source>1.8</source>
+          <target>1.8 </target>
           <compilerId>jdt</compilerId>
           <compilerArgument>-err:nullAnnot,null </compilerArgument>
           <!-- insert your warn/err configuration here -->
@@ -249,19 +173,25 @@ Without it Maven would put two versions of each class file into the jars
         <groupId>org.eclipse.tycho</groupId>
         <artifactId>tycho-packaging-plugin</artifactId>
         <version>${tycho-version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.eclipse.tycho.extras</groupId>
+            <artifactId>tycho-buildtimestamp-jgit</artifactId>
+            <version>${tycho-extras.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <strictBinIncludes>false</strictBinIncludes>
+          <format>yyyyMMdd-HHmm</format>
+          <timestampProvider>jgit</timestampProvider>
+          <jgit.ignore>pom.xml</jgit.ignore>
+          <jgit.dirtyWorkingTree>warning</jgit.dirtyWorkingTree>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
         <artifactId>tycho-surefire-plugin</artifactId>
         <version>${tycho-version}</version>
-      </plugin>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-source-plugin</artifactId>
-        <version>${tycho-version}</version>
-        <configuration>
-          <strictSrcIncludes>false</strictSrcIncludes>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
@@ -290,18 +220,6 @@ Without it Maven would put two versions of each class file into the jars
               <url>http://download.eclipse.org/eclipse/updates/3.8</url>
             </repository>
           </baselineRepositories>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
-        <configuration>
-          <aggregate>true</aggregate>
-          <doctitle>Dokumentation der Java Schnittstellen f&#xFC;r Elexis ${project.version} (Base plugins).</doctitle>
-          <header><![CDATA[Elexis ${project.version} (Base plugins). See also <a href="http://elexis.info">http://elexis.info</a>]]></header>
-          <bottom><![CDATA[Copyright 2006-2013 Gerry Weirich and many more. See also <a href="http://elexis.info">Elexis</a>: eine freie Software von Ärzten für Ärzte]]></bottom>
-          <excludePackageNames>org.eclipse.*</excludePackageNames>
         </configuration>
       </plugin>
       <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
@@ -336,4 +254,10 @@ Without it Maven would put two versions of each class file into the jars
     </plugins>
   </pluginManagement>
 </build>
+	<distributionManagement>
+		<site>
+			<id>www.elexis.info</id>
+			<url>http://www.elexis.info</url>
+		</site>
+	</distributionManagement>
 </project>

@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import at.medevit.ch.artikelstamm.ArtikelstammConstants.TYPE;
 import ch.artikelstamm.elexis.common.ArtikelstammItem;
 import ch.elexis.data.Artikel;
 import ch.elexis.data.Kontakt;
@@ -108,8 +107,8 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 		conn = jdbc.getConnection();
 		addMediAuswertungTable();
 		// Force activation of Artikelstamm
-		int pharmaCumulV = ArtikelstammItem.getImportSetCumulatedVersion(TYPE.P);
-		log.info("pharmaCumulV " +pharmaCumulV);
+		int pharmaCumulV = ArtikelstammItem.getCurrentVersion();
+		log.info("currentVersion " +pharmaCumulV);
 		Statement sta = null;
 
 		try {
@@ -435,7 +434,7 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 					*/
 					rs.updateRow();
 				} catch (SQLException e1) {
-					showProgress("addDiagnosesToVemKontakt: vem_kontakt nr " + patient.getPatCode()
+					showProgress("addDiagnosesToVemKontakt: vem_kontakt nr " + (patient == null ? "" : patient.getPatCode())
 						+ " id " + pat_id + "\n" + e1.getMessage() + " j: " + j);
 					errors++;
 				}
@@ -443,7 +442,7 @@ create view vem_info as select vem_kontakt.id, 	 vem_kontakt.Bezeichnung1, vem_k
 			conn.setAutoCommit(true);
 			stmt.close();
 		} catch (SQLException e1) {
-			showProgress("addDiagnosesToVemKontakt: vem_kontakt nr " + patient.getPatCode()
+			showProgress("addDiagnosesToVemKontakt: vem_kontakt nr " +  (patient == null ? "" : patient.getPatCode())
 				+ " id " + pat_id + "\n" + e1.getMessage() + " j: " + j);
 		} finally {
 			if (stmt != null) {
