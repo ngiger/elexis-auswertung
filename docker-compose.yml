@@ -1,0 +1,12 @@
+version: '2.0'
+
+services:
+
+  auswertung:
+    container_name: auswertung
+    build: .
+    volumes:
+      - $PWD/ch.ngiger.elexis.auswertung.products/target/products/ch.ngiger.elexis.auswertung.EA/linux/gtk/x86_64:/usr/local/auswertung:ro
+      - $PWD/start_auswertung_in_docker.sh:/usr/local/start_auswertung_in_docker.sh:ro
+      - $PWD/logs:/var/log/auswertung
+    entrypoint: /usr/local/start_auswertung_in_docker.sh

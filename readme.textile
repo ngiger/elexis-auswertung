@@ -26,7 +26,7 @@ h2. Installation
 
 Von "Continuos Integration for Elexis 3":https://jenkins.elexis.info/jenkins/job/elexis-auswertung/lastSuccessfulBuild/artifact/ch.ngiger.elexis.auswertung.products/target/products/ die komprimierte Datei für das eigene Betriebssystem runterladen und entpacken.
 
-h2. Ausführen
+h2. Ausführen auf der lokalen Kommandozeile
 
 Die (kommentierte) Datei "batch.sh":https://raw.githubusercontent.com/ngiger/elexis-auswertung/master/batch.sh herunterladen und für Ihre Umgebung anpassen (Benutzernamen, Passwörter, DB-Name, etc). Danach kann man auf der Kommandozeile
 
@@ -34,7 +34,7 @@ Die (kommentierte) Datei "batch.sh":https://raw.githubusercontent.com/ngiger/ele
 
 Danach kann man mysql sich auf die Datebank verbinden. Folgende Abfrage sollte funktionieren;
 
-bc. mysql> select diagnosen_text from kontakt_copy where diagnosen is not null limit 1;
+bc. mysql> select diagnosen_text from vem_kontakt where diagnosen is not null limit 1;
 +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | diagnosen_text                                                                                                                                                          |
 +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -43,11 +43,29 @@ F45.4: Anhaltende somatoforme Schmerzstörung;K58: Colon irritabile;N41.1: Chron
 +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 1 row in set (0.00 sec)
 
+h2. Ausführen innerhalb einer docker Instanz
+
+Das Installieren von Docker ist unter https://docs.docker.com/docker-for-mac/install/ beschrieben.
+
+Damit die Docker-Instanz gestartet werden kann, muss vorgängig einmalig der Befehl @mvn clean install@ ausgeführt werden, um die auszuführende EXE zu erstellen.
+
+Die Parameter für die Datenbank (host,port,user,password,dbname) müssen in "start_auswertung_in_docker.sh":start_auswertung_in_docker.sh angepasst werden. Achtung: host darf nicht localhost oder 127.0.0.1 sein, sondern eine gültige IP-Adresse.
+
+Der Aufruf von  @docker-compose up@ wird die Docker-Instanz erstellen (dauert das erste Mal etwas länger), die Datei start_auswertung_in_docker.sh innerhalb des docker Abbilds starten, eine Logdatei wie,
+logs/docker-2018.10.30-10.46.32.log erstellen und sich beenden.
+
+Zur Fehlersuch kann man via  @docker-compose run --rm --entrypoint /bin/bash auswertung@ eine Bash-Shell innerhalb der Docker-Instanz öffnen.
+
+Dort kann z.B. via  @mysql --port=1400 --host=192.168.0.70 --user=elexis --password=elexisTest elexisdb@ auf die MySQL-Datenbank zugreifen.
+
+Der obige Bash-Befehl sollte auch der lokalen Kommandozeile laufen. Falls nicht, kontrollieren ob die e @bind-address@ Konfigurations-Variable in /etc/mysql/my.cnf correct gesetzt ist, z.B. @0.0.0.0@
+
+Falls die Docker-Instanz nicht startet, kann man mit Hilfe von @docker-compose rm --force@, alte Instanzen entfernen
 
 
 h2. Aussichten
 
-In einem zweiten Schritt (aber erst ab Elexis 3.1) soll noch die Fixmedikation hinzukommen.
+In einem zweiten Schritt (aber erst ab Elexis 3.5) soll noch die Fixmedikation hinzukommen.
 
 h2. Hints for programmers
 
@@ -66,6 +84,4 @@ This application runs a bare Elexis on the console. It demonstrates the headless
 This allows to access an Elexis database without starting a full graphical system. Import all the eclipse project into your Eclipse IDE.
 
 To start the application right click on @Auswertung.product.launch@ and select @Run As..Auswertung.product@.
-
-
 
