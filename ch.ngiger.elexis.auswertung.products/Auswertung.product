@@ -40,7 +40,7 @@
    <features>
       <feature id="ch.elexis.core.common.feature"/>
       <feature id="ch.elexis.core.logging.feature"/>
-      <feature id="ch.ngiger.elexis.auswertung.feature" version="3.1.0.qualifier"/>
+      <feature id="ch.ngiger.elexis.auswertung.feature" version="3.7.0.qualifier"/>
       <feature id="ch.elexis.core.application.feature"/>
    </features>
 

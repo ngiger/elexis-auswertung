@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/ch.ngiger.elexis.auswertung.feature_3.1.0.qualifier.jar" id="ch.ngiger.elexis.auswertung.feature" version="3.1.0.qualifier">
+   <feature url="features/ch.ngiger.elexis.auswertung.feature_3.7.0.qualifier.jar" id="ch.ngiger.elexis.auswertung.feature" version="3.7.0.qualifier">
       <category name="elexis.auswertung"/>
    </feature>
    <category-def name="elexis.auswertung" label="Elexis Auswertung"/>

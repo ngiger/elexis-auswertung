@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ch.ngiger</groupId>
   <artifactId>elexis-auswertung</artifactId>
-  <version>3.1.0-SNAPSHOT</version>
+  <version>3.7.0-SNAPSHOT</version>
   <modules>
     <module>ch.ngiger.elexis.auswertung</module>
     <module>ch.ngiger.elexis.auswertung.feature</module>
@@ -16,8 +16,8 @@
     <juno-repo.url>http://download.eclipse.org/releases/juno</juno-repo.url>
     <tycho-repo.url>https://oss.sonatype.org/content/groups/public/</tycho-repo.url>
     <repo_name>elexis.3.base</repo_name>
-    <git.core.branch>3.6</git.core.branch>
-    <git.target.branch>3.6</git.target.branch>
+    <git.core.branch>3.7</git.core.branch>
+    <git.target.branch>3.7</git.target.branch>
     <ROOT>${project.basedir}/compositeRepository</ROOT>
   </properties>
   <packaging>pom</packaging>
